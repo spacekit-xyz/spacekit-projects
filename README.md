@@ -1,3 +1,3 @@
 # SpaceKit Projects
 
-SpaceKit Projects will be the repository which contains examples of how to utilize the SpaceKit Network and SpaceKit Agents.
+A collection of SpaceKit Projects to serve as an example of how to build, train and deploy agents on SpaceKit.

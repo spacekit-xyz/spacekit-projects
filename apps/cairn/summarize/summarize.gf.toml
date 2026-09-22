@@ -1,0 +1,28 @@
+# Cairn summarizer micro-brain — 1–2 sentence note summaries.
+#
+# Build corpus:
+#   python3 scripts/build_corpus.py
+# Train:
+#   ./scripts/train.sh
+
+schema_version = 1
+
+[project]
+name = "Cairn Summarize"
+author = "Astor Rivera"
+description = "Summarize wiki-style notes in one or two sentences."
+
+[train]
+auto = true
+data_dir = "data"
+brain_output = "agent/summarize-brain.bin"
+encoder = "clifford_e8"
+brain_gen_epochs = 1200
+brain_epochs = 800
+
+[inference]
+toml = "data/inference.toml"
+topic_graph = "data/knowledge_graph.toml"
+
+[infer]
+brain = "agent/summarize-brain.bin"

@@ -1,0 +1,207 @@
+# Agent deploy manifest for `spacekit storage deploy --package deploy.toml`
+# Paths are relative to this file unless absolute.
+
+[artifacts]
+wasm = "/Users/astor/Projects/2026/spacekit/spacekit-standard-library/target/wasm32-unknown-unknown/release/spacekit_growformer_crypto_analysis.wasm"
+bin = "agent/crypto-brain.bin"
+
+[agent]
+id = "crypto-sentiment-analysis-agent-001"
+# owner_did = "did:spacekit:..."  # optional; defaults to `spacekit init` identity
+
+[project]
+# Optional: read growformer.brain_storage_key when [hub].brain_key is omitted
+gf_toml = "crypto-sentiment-analysis.gf.toml"
+
+[storage]
+# url = "http://127.0.0.1:3030"
+# owner_key_algorithm = "Kyber1024"
+
+[receipt]
+path = "deploy-receipt.json"
+
+[hub]
+# Must match AGENT_BRAIN in spacekit-growformer-crypto-analysis/src/lib.rs
+brain_key = "crypto_brain"
+capabilities = ["Sentiment analysis"]
+tag_label = "CRYPTO"
+tag_color = "#0ea5e9"
+hub_response_format = "growformer" # growformer | plain
+thinking_label = "Analyzing"
+# op = 1
+# input_format = "string_only"     # string_only | op_string
+
+[marketplace]
+publish = true
+title = "Crypto Sentiment Analysis"
+description = "Growformer-backed agent for crypto sentiment analysis."
+category = "ai"
+access = "public"
+price = "0.000" # pay-per-use aUSD; use "free" for no charge
+marketplace_id = "default"
+
+
+# Optional: preload sample prompts for the agent
+# These are served to the website via the agent's FactPackage metadata
+# so the frontend does not need to hardcode them.
+
+[prompts]
+format = "sentiment"
+
+[prompts.categories]
+price   = { label = "Price / Market",   color = "#1D9E75" }
+fraud   = { label = "Crime / Fraud",    color = "#E24B4A" }
+defi    = { label = "DeFi / Protocol",  color = "#378ADD" }
+sarcasm = { label = "Sarcasm / Mixed",  color = "#BA7517" }
+slang   = { label = "Slang / Register", color = "#7F77DD" }
+edge    = { label = "Edge Cases",       color = "#888780" }
+
+[[prompts.items]]
+id = 1
+category = "price"
+expected = "POS strong"
+text = "I love that Bitcoin is above $100K , this cycle feels different and I'm finally in profit"
+
+[[prompts.items]]
+id = 2
+category = "price"
+expected = "NEUTRAL"
+text = "Solana fees are practically zero but nobody's building anything people actually use"
+
+[[prompts.items]]
+id = 3
+category = "price"
+expected = "POS strong"
+text = "Bitcoin just printed a golden cross on the weekly chart for the first time since 2023"
+
+[[prompts.items]]
+id = 4
+category = "price"
+expected = "NEUTRAL"
+text = "My portfolio is up 400% this cycle but I still haven't taken profit because I'm a degenerate"
+
+[[prompts.items]]
+id = 5
+category = "price"
+expected = "MIXED"
+text = "Layer 2 fees dropped to sub-cent but bridging back to mainnet still costs more than my lunch"
+
+[[prompts.items]]
+id = 6
+category = "fraud"
+expected = "NEG strong"
+text = "The founder moved 45,000 ETH to a fresh wallet two hours before the exploit was announced"
+
+[[prompts.items]]
+id = 7
+category = "fraud"
+expected = "NEG strong"
+text = "The rug pull wiped out thousands of investors and the dev team disappeared with the entire treasury"
+
+[[prompts.items]]
+id = 8
+category = "fraud"
+expected = "NEG strong"
+text = "The exploit drained every wallet that interacted with the contract; people lost their entire savings"
+
+[[prompts.items]]
+id = 9
+category = "fraud"
+expected = "NEG strong"
+text = "I hate that I fell for the fake MetaMask approval, lost everything to a phishing scam"
+
+[[prompts.items]]
+id = 10
+category = "fraud"
+expected = "MIXED"
+text = "SEC filed an emergency freeze on the token sale but half the money already left the country"
+
+[[prompts.items]]
+id = 11
+category = "defi"
+expected = "NEG strong"
+text = "The governance vote passed with twelve wallets controlling the outcome , so much for decentralization"
+
+[[prompts.items]]
+id = 12
+category = "defi"
+expected = "NEUTRAL"
+text = "Aave V4 migration went clean, no downtime, no stuck funds, zero drama for once"
+
+[[prompts.items]]
+id = 13
+category = "defi"
+expected = "NEG strong"
+text = "Staking rewards dropped from 18% to 4% and suddenly everyone discovered the unlock button"
+
+[[prompts.items]]
+id = 14
+category = "defi"
+expected = "MIXED"
+text = "I enjoy using this DEX but the slippage on large orders is awful"
+
+[[prompts.items]]
+id = 15
+category = "sarcasm"
+expected = "SARCASTIC"
+text = "Oh wonderful, another rebase token that definitely won't go to zero like the last six"
+
+[[prompts.items]]
+id = 16
+category = "sarcasm"
+expected = "SARCASTIC"
+text = "Sure, because a token with 90% held by three wallets is definitely decentralized"
+
+[[prompts.items]]
+id = 17
+category = "sarcasm"
+expected = "POS mild"
+text = "Not the worst wallet UX I've used, which is genuinely the highest praise in this space"
+
+[[prompts.items]]
+id = 18
+category = "sarcasm"
+expected = "MIXED"
+text = "Finally got the airdrop which was great but half the tokens are locked and the vesting schedule is awful"
+
+[[prompts.items]]
+id = 19
+category = "slang"
+expected = "NEG strong"
+text = "ser the chart is cooked, ngmi if you're still holding that bag after the unlock"
+
+[[prompts.items]]
+id = 20
+category = "slang"
+expected = "NEG strong"
+text = "Wen airdrop? The team keeps teasing and the community is getting restless ngl"
+
+[[prompts.items]]
+id = 21
+category = "slang"
+expected = "POS mild"
+text = "This dApp is absolutely mint, gas optimized, clean UI, instant settlement"
+
+[[prompts.items]]
+id = 22
+category = "slang"
+expected = "NEG strong"
+text = "I despise these gas fees, paid more in transaction costs than the actual trade was worth"
+
+[[prompts.items]]
+id = 23
+category = "edge"
+expected = "NEUTRAL"
+text = "Convert 0.5 BTC to USDT at current market price"
+
+[[prompts.items]]
+id = 24
+category = "edge"
+expected = "NEUTRAL"
+text = "List the top five cryptocurrencies by market capitalization"
+
+[[prompts.items]]
+id = 25
+category = "edge"
+expected = "NEUTRAL"
+text = "The SHA-256 hash function produces a 256-bit digest regardless of input length"

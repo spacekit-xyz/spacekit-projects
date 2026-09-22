@@ -1,0 +1,18 @@
+{
+  "reviewed_by": "cursor-cycle",
+  "stamp": "20260719_202505",
+  "queue": "/Users/astor/Projects/2026/spacekit/spacekit-projects/companions/luna/capture_artifacts/label_queue.jsonl",
+  "queue_sha256": "c16acae6c0baca8737413791dc8f9d6c3762b5b1e61fca4bf443097fffc66e66",
+  "companion": "/Users/astor/Projects/2026/spacekit/spacekit-projects/companions/luna",
+  "train_path": "/Users/astor/Projects/2026/spacekit/spacekit-projects/companions/luna/capture_artifacts/approved_shard/capture_train_20260719_202505.jsonl",
+  "eval_path": "/Users/astor/Projects/2026/spacekit/spacekit-projects/companions/luna/capture_artifacts/approved_shard/eval_capture_20260719_202505.jsonl",
+  "prompts_path": "/Users/astor/Projects/2026/spacekit/spacekit-projects/companions/luna/capture_artifacts/approved_shard/eval_capture_20260719_202505_prompts.txt",
+  "train_count": 4,
+  "eval_count": 1,
+  "holdout_ratio": 0.2,
+  "skipped_blank_intent": 0,
+  "skipped_unknown_intent": 0,
+  "valid_intent_count": 33,
+  "created_at_utc": "2026-07-19T20:25:05.271312+00:00",
+  "note": "Fingerprint CL uses text+semantic_intent+action_target. Overlay/full train needs expected_response filled for new knowledge."
+}

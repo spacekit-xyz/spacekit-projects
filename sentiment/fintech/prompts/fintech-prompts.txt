@@ -1,0 +1,99 @@
+# Fintech/crypto sentiment regression prompts — one plain-text line per prompt (no wrapping quotes needed).
+# Blank lines ignored; lines starting with # are comments. Use: --infer --prompts-file data/fintech/fintech-prompts.txt
+# Locked 20-line tape suite (train_sentiment_fintech_crypto.jsonl crypto_110–129): use fintech-prompts-v2.txt. This file is a broader smoke list; expect weak alignment unless the brain matches its training mix.
+BTC is grinding up slowly but nobody seems excited. What’s the vibe here.
+
+Alts are mooning while BTC is flat. This feels like a trap.
+
+Funding just flipped positive again. Bulls getting overconfident already.
+
+We’re bouncing but volume is nonexistent. Not convinced.
+
+That breakout was clean. Finally some real strength.
+
+ETH is lagging everything. What is this price action.
+
+We’re dumping but OI is rising. Something’s off.
+
+This rally feels healthier than the last one.
+
+Market’s dead. Zero volatility. Zero interest.
+
+That wick was disgusting. Total manipulation.
+Whales just moved $300M to cold storage. Interesting timing.
+
+Liquidations are stacking up again. Bears in control.
+
+Funding is deeply negative but price won’t drop. Weird strength.
+
+Open interest is climbing way too fast. Feels dangerous.
+
+Exchange reserves are at a 5‑year low. Bullish?
+
+Staking deposits slowed down hard this week.
+
+Miner outflows spiked. Not loving that.
+
+Dormant wallets waking up after years… never a good sign.
+
+On‑chain activity is exploding. Something big is coming.
+
+MEV bots are draining everyone again. Brutal.
+The sequencer froze again. How is this still happening.
+
+The upgrade finally fixed the congestion issues. Huge win.
+
+Another validator got slashed. Reliability is a joke.
+
+The bridge upgrade actually worked. Transfers feel instant.
+
+Unexpected fork last night. No one knows why.
+
+TPS is up but the UX still feels awful.
+
+The chain halted for 10 minutes and devs are silent.
+
+New governance proposal looks promising.
+
+The oracle glitch caused chaos again.
+
+The new L2 is fast but still centralized as hell.
+CPI came in hot and the market instantly puked.
+
+The Fed paused again. Market barely reacted.
+
+SEC approval rumors are flying. People are getting excited.
+
+ETF outflows today were massive. Not bullish.
+
+Regulators hinting at stablecoin rules soon.
+
+Another exchange under investigation. Here we go again.
+
+ETF inflows hit a record. Institutions are hungry.
+
+Macro looks awful but BTC is holding strong.
+
+The SEC’s statement was vague as usual.
+
+Rate cuts might be coming sooner than expected.
+We’re so back. This chart is pure art.
+
+I’m coping so hard right now.
+
+This pump is 100% hopium but I’m here for it.
+
+Everything is red. I’m done. Fully done.
+
+We’re early. So early. Too early.
+
+This chop is killing my soul.
+
+I swear the devs are trolling us at this point.
+
+This rally feels fake but I want to believe.
+
+CT is euphoric but the chart looks awful.
+
+I’m laughing through the pain.
+

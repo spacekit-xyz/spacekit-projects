@@ -1,0 +1,29 @@
+{
+  "name": "@spacekit/crm",
+  "version": "0.1.0",
+  "description": "Customer relations manager for the SpaceKit network. Build with `npm run build`, then package dist/ with ./scripts/package.sh.",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "build:lib": "tsc -p tsconfig.lib.json --noEmit false --outDir lib --declaration"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^6.0.2",
+    "typescript": "^5.5.3",
+    "vite": "^8.0.16"
+  }
+}

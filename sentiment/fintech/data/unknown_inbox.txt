@@ -1,0 +1,13 @@
+# Fintech unknown queue — one headline or snippet per non-empty line.
+# Lines starting with # are ignored. Paste new wires here, then batch-run inference.
+#
+# From the growformer crate directory (paths relative to crate root):
+#   cargo run --release --bin growformer -- infer --brain agent-data/fintech-analysis/fintech-brain.bin --prompts-file data/fintech/unknown_inbox.txt
+#
+# After you review output:
+#   1) For recurring shapes, add TOML rows in data/fintech/inference_fintech.toml (rules.headline_lexical_topic).
+#   2) For stable labels, add training rows in data/fintech/train_sentiment_fintech.jsonl using
+#      generic firm names (Contoso, Fabrikam, …) so the lattice generalizes off real trademarks.
+#   3) Re-train the micro-brain with your project file, e.g. scripts/fintech-sentiment-analysis.gf.toml
+#
+# (Add headlines below this line.)

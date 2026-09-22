@@ -1,0 +1,32 @@
+# PR / wire-style headlines (not tape operator chatter). `LanguageService` forces the sentiment lattice +
+# neutral bucket for these lines (overrides MetaBrain / TopicGraph / cross-group redirects); patterns live in
+# `sentiment_fintech_press_headline_topic_key` (`inference_toml.rs`). Expect mostly NEUTRAL / neutral_chop.
+# Use: --infer --prompts-file data/fintech/fintech-prompts-news.txt
+How Bolt's AI Pivot Showcases an Evolution in Fintech Hiring
+
+How is Ahold Delhaize Modernising the Checkout with Fiserv?
+
+How StraitsX & KBank are Facilitating SE Asia's Tourism Boom
+
+Aspire and J.P. Morgan Payments Bridge FX Gaps
+
+A Breath of Fresh AIR: Revolut's Financial Literacy Chatbot
+
+Kalshi wins temporary pause in Arizona criminal case
+
+After pivoting, Y Combinator grad Glimpse raises $35M led by a16z
+
+Doss raises $55M for AI inventory management that plugs into ERP
+
+Stripe wants to turn your AI costs into a profit center
+
+Geopolitical drama reportedly stalls IPO of SoftBank-backed PayPay
+
+OpenAI fires employee for using confidential info on prediction markets
+
+An accountant won a big jackpot on Kalshi by betting against DOGE
+
+Stripe’s valuation soars 74% to $159 billion
+
+MrBeast’s company buys Gen Z-focused fintech app Step
+

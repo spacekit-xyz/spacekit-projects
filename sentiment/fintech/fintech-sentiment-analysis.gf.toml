@@ -1,0 +1,28 @@
+# Fintech / TradFi sentiment — canonical project under spacekit-projects/sentiment/fintech.
+# Train / infer from growformer crate root, e.g.:
+#   cargo run --release --no-default-features --features cli,native --bin growformer -- \
+#     --train-brain --project /path/to/spacekit-projects/sentiment/fintech/fintech-sentiment-analysis.gf.toml
+
+schema_version = 1
+
+[project]
+name = "Fintech Sentiment Analysis"
+author = "Astor Rivera"
+description = "Traditional fintech (TradFi) sentiment analysis micro-brain. Classifies equities, banking, corporate finance, and traditional financial services text into positive (strong/mild), negative (strong/mild), neutral, mixed, and sarcastic with reasoning."
+
+[train]
+auto = true
+data_dir = "data"
+brain_output = "agent/fintech-brain.bin"
+brain_plugins_toml = "plugins/example-brain-plugins.toml"
+encoder = "clifford_e8"
+brain_gen_epochs = 3000
+
+[inference]
+toml = "data/inference_fintech.toml"
+guardrails_jsonl = "data/inference_guardrails.jsonl"
+topic_graph = "data/knowledge_graph.toml"
+grounding_toml = "data/world_grounding_fintech.toml"
+
+[infer]
+brain = "agent/fintech-brain.bin"

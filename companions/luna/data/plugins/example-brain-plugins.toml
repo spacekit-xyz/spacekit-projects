@@ -1,0 +1,24 @@
+# Embed as UTF-8 TOML inside the exported Luna brain .bin.
+
+[sentiment]
+# Lower confidence floor than sentiment brains — pet responses are
+# more open-ended and ambiguity is part of the charm.
+meta_gk_margin = 0.05
+meta_gk_confidence = 0.45
+min_meta_confidence_user_anchored = 0.25
+default_line_confidence = 0.75
+ambiguous_line_confidence = 0.45
+# No mixed_override — Luna has no `mixed` topic.
+
+[language_detection]
+default_locale = "en"
+min_confidence = 0.35
+
+[badwords]
+# Pet companion stance: redirect, don't block. The cat reacts to the
+# emotional energy of the message without producing a content warning.
+severity = "redirect"
+# Optional: list_path = "data/policy/pet-badwords-en.txt"
+# The list should target adversarial / sexualizing content, not casual
+# profanity — owners curse affectionately at pets all the time and
+# Luna should handle that in character.

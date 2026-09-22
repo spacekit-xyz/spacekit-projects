@@ -1,0 +1,11 @@
+# Web game deploy — package with scripts/package.sh then:
+#   spacekit app deploy ui/dist/dragon-layerz-1.0.0.spkg --storage-node http://127.0.0.1:3030 --publish
+
+[marketplace]
+publish = true
+title = "Dragon Layerz"
+description = "Descent to the Cosmic Gate — a retro arcade stacker for touch and keyboard."
+category = "games"
+access = "public"
+price = "free"
+marketplace_id = "default"

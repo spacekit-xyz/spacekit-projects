@@ -1,0 +1,11 @@
+{
+  "name": "hello-spacekit",
+  "version": "1.0.0",
+  "description": "Example SpaceKit WebApp demonstrating the SDK bridge",
+  "private": true,
+  "scripts": {
+    "preview": "npx serve .",
+    "package": "spacekit app package . --name 'Hello SpaceKit' --entry index.html --version 1.0.0",
+    "deploy": "spacekit app deploy hello-spacekit-1.0.0.spkg --publish"
+  }
+}

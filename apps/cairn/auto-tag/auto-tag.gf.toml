@@ -1,0 +1,30 @@
+# Cairn auto-tag micro-brain — suggest JSON tag arrays for notes.
+#
+# Build corpus:
+#   python3 scripts/build_corpus.py
+# Train:
+#   ./scripts/train.sh
+# Infer:
+#   spacekit agent infer --project auto-tag.gf.toml --brain agent/auto-tag-brain.bin --prompt "…"
+
+schema_version = 1
+
+[project]
+name = "Cairn Auto-Tag"
+author = "Astor Rivera"
+description = "Suggest 3–6 topical tags for wiki-style notes. Returns a JSON string array."
+
+[train]
+auto = true
+data_dir = "data"
+brain_output = "agent/auto-tag-brain.bin"
+encoder = "clifford_e8"
+brain_gen_epochs = 1200
+brain_epochs = 800
+
+[inference]
+toml = "data/inference.toml"
+topic_graph = "data/knowledge_graph.toml"
+
+[infer]
+brain = "agent/auto-tag-brain.bin"

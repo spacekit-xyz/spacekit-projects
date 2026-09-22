@@ -1,0 +1,9 @@
+# Auto-tag — lattice retrieval only; no sentiment gates.
+
+meta_gk_margin = 0.05
+meta_gk_confidence = 0.55
+default_line_confidence = 0.92
+ambiguous_line_confidence = 0.58
+
+[rules]
+lexicon_keywords = []

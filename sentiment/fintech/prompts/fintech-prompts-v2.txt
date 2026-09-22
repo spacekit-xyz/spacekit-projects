@@ -1,0 +1,42 @@
+# Fintech/crypto sentiment regression prompts — one plain-text line per prompt (no wrapping quotes needed).
+# Blank lines ignored; lines starting with # are comments. Use: --infer --prompts-file data/fintech/fintech-prompts-v2.txt
+# Gold labels + grounded rationales for these lines are in train_sentiment_fintech_crypto.jsonl as crypto_110–crypto_131 (retrain to pick them up).
+ETH is lagging again while everything else is green. Something feels off.
+
+Market’s chopping but open interest keeps climbing. Someone’s about to get cooked.
+
+BTC dominance is bleeding fast. Either altseason is real or we’re about to nuke.
+
+Price is pushing up but RSI is screaming exhaustion. Not buying this move.
+
+Whales are accumulating quietly while retail is panic selling. Classic setup.
+
+We’re sitting right under resistance with no reaction. This usually ends violently.
+
+Liquidations are stacking on both sides. Feels like the calm before a big move.
+
+Sentiment flipped bearish instantly after a tiny red candle. Peak fragility.
+
+Everyone’s calling for a breakdown but funding is still positive. Mixed signals everywhere.
+
+Volume is spiking but price isn’t moving. Someone’s absorbing like crazy.
+
+Market makers are playing ping-pong with the range. No clean direction yet.
+
+Fear & Greed is back in “Greed” but charts look tired. Dangerous combo.
+
+BTC is coiling tighter than ever. This compression won’t last long.
+
+Alts are printing 20% candles out of nowhere. Feels like exit liquidity season.
+
+We keep tapping support but no bounce. Buyers look exhausted.
+
+Every pump gets sold instantly. Trend is clearly shifting.
+
+People are euphoric over tiny green candles. That’s usually the top signal.
+
+Funding is negative but price won’t drop. Bears might be trapped this time.
+
+Market is moving on zero news. Someone knows something.
+
+Overnight wick took out both sides. Pure manipulation vibes.

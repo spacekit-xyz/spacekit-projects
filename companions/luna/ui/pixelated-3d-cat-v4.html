@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Pixelated 3D Cat — v4</title>
+<style>
+  :root { --bg:#2a2536; --ink:#f3ecdc; --accent:#ffb454; --muted:#9a93a8; --panel:rgba(20,18,28,0.82); }
+  * { box-sizing: border-box; }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--ink);
+    font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif; overflow:hidden; }
+  #stage { position:absolute; inset:0; }
+  #stage canvas { display:block; image-rendering: pixelated; image-rendering: crisp-edges; }
+  .hud { position:absolute; padding:12px 14px; background:var(--panel);
+    backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.08);
+    border-radius:14px; user-select:none; }
+  #info { top:20px; left:20px; font-size:13px; color:var(--muted); max-width:280px; }
+  #info b { color:var(--accent); font-weight:600; }
+  #info h1 { margin:0 0 6px 0; font-size:18px; color:var(--ink); font-weight:500; letter-spacing:0.02em; }
+  #states { bottom:16px; left:50%; transform:translateX(-50%); display:grid;
+    grid-template-columns: repeat(6, auto); gap:6px; max-width:95vw; }
+  #states button { background:transparent; color:var(--ink); border:1px solid rgba(255,255,255,0.18);
+    padding:7px 12px; border-radius:8px; font:inherit; font-size:12px; cursor:pointer;
+    text-transform:lowercase; letter-spacing:0.04em; transition:all 0.15s ease; min-width:80px; }
+  #states button:hover { border-color:var(--accent); }
+  #states button.on { background:var(--accent); color:#1a1206; border-color:var(--accent); }
+  #controls { top:20px; right:20px; font-size:12px; }
+  #controls label { display:flex; align-items:center; gap:8px; margin-bottom:6px; color:var(--muted); }
+  #controls input[type=range] { width:120px; }
+  #controls .v { color:var(--accent); font-weight:600; min-width:32px; text-align:right; }
+  #err { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    background:#ff4444; color:white; padding:20px 30px; border-radius:10px;
+    font-family:monospace; font-size:14px; max-width:80%; display:none; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="err"></div>
+
+<div id="info" class="hud">
+  <h1>pixelated 3d cat</h1>
+  state: <b id="stateName">idle</b><br>
+  <span style="font-size:11px">drag to orbit · scroll to zoom</span>
+</div>
+
+<div id="controls" class="hud">
+  <label>pixel size <input id="pxSize" type="range" min="2" max="12" value="6" step="1"><span class="v" id="pxVal">6</span></label>
+  <label>palette <input id="paletteOn" type="checkbox" checked> quantize</label>
+  <label>dither <input id="ditherOn" type="checkbox"> on</label>
+</div>
+
+<div id="states" class="hud">
+  <button data-state="idle" class="on">idle</button>
+  <button data-state="happy">happy</button>
+  <button data-state="sleeping">sleeping</button>
+  <button data-state="alert">alert</button>
+  <button data-state="playful">playful</button>
+  <button data-state="thinking">thinking</button>
+  <button data-state="hungry">hungry</button>
+  <button data-state="satiated">satiated</button>
+  <button data-state="lazy">lazy</button>
+  <button data-state="fear">fear</button>
+  <button data-state="attitude">attitude</button>
+  <button data-state="confused">confused</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script>
+(function() {
+  const errEl = document.getElementById('err');
+  function showErr(m) { errEl.textContent = m; errEl.style.display = 'block'; }
+  window.addEventListener('error', e => showErr('Error: ' + e.message));
+  if (!window.THREE) { showErr('three.js failed to load'); return; }
+
+  const stage = document.getElementById('stage');
+  const renderer = new THREE.WebGLRenderer({ antialias: false });
+  renderer.setPixelRatio(1);
+  renderer.setClearColor(0x2a2536);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  stage.appendChild(renderer.domElement);
+
+  let renderTarget, pixelSize = 6;
+  function makeRT() {
+    const w = Math.max(32, Math.floor(window.innerWidth / pixelSize));
+    const h = Math.max(32, Math.floor(window.innerHeight / pixelSize));
+    if (renderTarget) renderTarget.dispose();
+    renderTarget = new THREE.WebGLRenderTarget(w, h, {
+      minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter,
+      format: THREE.RGBAFormat, generateMipmaps: false,
+    });
+  }
+  makeRT();
+
+  function resize() {
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    makeRT();
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    postMat.uniforms.uResolution.value.set(window.innerWidth, window.innerHeight);
+  }
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 100);
+
+  let camAngle = 0.6, camTilt = 0.4, camDist = 5;
+  let dragging = false, lastX = 0, lastY = 0;
+  renderer.domElement.addEventListener('pointerdown', e => { dragging = true; lastX = e.clientX; lastY = e.clientY; });
+  window.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    camAngle -= (e.clientX - lastX) * 0.01;
+    camTilt = Math.max(0.05, Math.min(1.4, camTilt - (e.clientY - lastY) * 0.01));
+    lastX = e.clientX; lastY = e.clientY;
+  });
+  window.addEventListener('pointerup', () => dragging = false);
+  renderer.domElement.addEventListener('wheel', e => {
+    e.preventDefault();
+    camDist = Math.max(2, Math.min(10, camDist + e.deltaY * 0.005));
+  }, { passive: false });
+
+  function updateCamera() {
+    const r = camDist * Math.cos(camTilt);
+    camera.position.x = r * Math.sin(camAngle);
+    camera.position.z = r * Math.cos(camAngle);
+    camera.position.y = camDist * Math.sin(camTilt) + 0.5;
+    camera.lookAt(0, 0.5, 0);
+  }
+
+  scene.add(new THREE.AmbientLight(0xfff1d6, 0.7));
+  const key = new THREE.DirectionalLight(0xfff0c8, 1.0);
+  key.position.set(3, 5, 2); key.castShadow = true;
+  key.shadow.mapSize.set(512, 512);
+  key.shadow.camera.left = -3; key.shadow.camera.right = 3;
+  key.shadow.camera.top = 3; key.shadow.camera.bottom = -3;
+  scene.add(key);
+  scene.add(new THREE.DirectionalLight(0x99b8ff, 0.3).translateX(-2).translateY(2).translateZ(-2));
+
+  const floor = new THREE.Mesh(new THREE.CircleGeometry(4, 32),
+    new THREE.MeshStandardMaterial({ color: 0x4a3d52, roughness: 1 }));
+  floor.rotation.x = -Math.PI/2; floor.receiveShadow = true; scene.add(floor);
+  const rug = new THREE.Mesh(new THREE.CircleGeometry(1.2, 32),
+    new THREE.MeshStandardMaterial({ color: 0x8a3a3a, roughness: 1 }));
+  rug.rotation.x = -Math.PI/2; rug.position.y = 0.005; rug.receiveShadow = true; scene.add(rug);
+
+  // ── CAT ─────────────────────────────────────────────────────
+  const gradient = new Uint8Array([60, 130, 200, 255]);
+  const gradTex = new THREE.DataTexture(gradient, gradient.length, 1, THREE.LuminanceFormat);
+  gradTex.minFilter = THREE.NearestFilter; gradTex.magFilter = THREE.NearestFilter;
+  gradTex.needsUpdate = true;
+  function toonMat(c) { return new THREE.MeshToonMaterial({ color: c, gradientMap: gradTex }); }
+
+  const fur = toonMat(0xf5a020);
+  const cream = toonMat(0xffe8b8);
+  const stripe = toonMat(0x8a3a08);
+  const pinkMat = toonMat(0xf8a8c8);
+  const darkMat = toonMat(0x2a1810);
+
+  const cat = new THREE.Group();
+  cat.position.y = 0.35;
+  scene.add(cat);
+
+  const body = new THREE.Mesh(new THREE.SphereGeometry(0.32, 16, 12), fur);
+  body.scale.set(1.5, 0.95, 1.0);
+  body.castShadow = true;
+  cat.add(body);
+
+  const headPivot = new THREE.Group();
+  headPivot.position.set(0.45, 0.15, 0);
+  cat.add(headPivot);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.26, 16, 12), fur);
+  head.position.set(0.05, 0, 0); head.castShadow = true;
+  headPivot.add(head);
+
+  // EARS — LARGER (was 0.08/0.16, now 0.11/0.22)
+  function makeEar(zOff) {
+    const pivot = new THREE.Group();
+    pivot.position.set(0.05, 0.12, zOff);
+    const outer = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.22, 4), fur);
+    outer.position.y = 0.11; outer.castShadow = true; pivot.add(outer);
+    const inner = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.14, 4), pinkMat);
+    inner.position.set(0.01, 0.07, 0); pivot.add(inner);
+    return pivot;
+  }
+  const earL = makeEar(0.14);
+  const earR = makeEar(-0.14);
+  headPivot.add(earL, earR);
+
+  const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 6), darkMat);
+  eyeL.position.set(0.24, 0.04, 0.1); headPivot.add(eyeL);
+  const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 6), darkMat);
+  eyeR.position.set(0.24, 0.04, -0.1); headPivot.add(eyeR);
+
+  const nose = new THREE.Mesh(new THREE.SphereGeometry(0.025, 6, 6), pinkMat);
+  nose.position.set(0.3, -0.04, 0); headPivot.add(nose);
+
+  const tailSegments = [];
+  const tailRoot = new THREE.Group();
+  tailRoot.position.set(-0.42, 0.05, 0);
+  cat.add(tailRoot);
+  let tp = tailRoot;
+  for (let i = 0; i < 5; i++) {
+    const seg = new THREE.Group();
+    const m = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.05 - i*0.006, 0.05 - (i+1)*0.006, 0.12, 8),
+      i % 2 === 0 ? fur : stripe);
+    m.rotation.z = Math.PI/2; m.position.x = -0.06;
+    m.castShadow = true; seg.add(m);
+    seg.position.x = i === 0 ? 0 : -0.12;
+    tp.add(seg); tailSegments.push(seg); tp = seg;
+  }
+  tailRoot.rotation.z = 0.5;
+
+  function makeLeg(x, z) {
+    const p = new THREE.Group();
+    p.position.set(x, -0.15, z);
+    const u = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.05, 0.18, 8), fur);
+    u.position.y = -0.09; u.castShadow = true; p.add(u);
+    const pw = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), cream);
+    pw.position.y = -0.18; pw.scale.set(1, 0.6, 1.2);
+    pw.castShadow = true; p.add(pw);
+    return p;
+  }
+  const legFL = makeLeg(0.25, 0.15);
+  const legFR = makeLeg(0.25, -0.15);
+  const legBL = makeLeg(-0.25, 0.18);
+  const legBR = makeLeg(-0.25, -0.18);
+  cat.add(legFL, legFR, legBL, legBR);
+
+  // ── Post-process ────────────────────────────────────────────
+  const postScene = new THREE.Scene();
+  const orthoCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  const PALETTE = [
+    [0x2a/255,0x18/255,0x10/255],[0xf5/255,0xa0/255,0x20/255],
+    [0xd4/255,0x7a/255,0x10/255],[0xff/255,0xe8/255,0xb8/255],
+    [0x8a/255,0x3a/255,0x08/255],[0xf8/255,0xa8/255,0xc8/255],
+    [0xc4/255,0x3a/255,0x3a/255],[0xf5/255,0xc8/255,0x42/255],
+    [0x2a/255,0x25/255,0x36/255],[0x4a/255,0x3d/255,0x52/255],
+    [0x8a/255,0x3a/255,0x3a/255],[0xff/255,0xff/255,0xff/255],
+  ];
+  const postMat = new THREE.ShaderMaterial({
+    uniforms: {
+      tDiffuse: { value: renderTarget.texture },
+      uPalette: { value: new Float32Array(PALETTE.flat()) },
+      uPaletteSize: { value: PALETTE.length },
+      uUsePalette: { value: 1.0 },
+      uUseDither: { value: 0.0 },
+      uResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+    },
+    vertexShader: `varying vec2 vUv; void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}`,
+    fragmentShader: `
+      precision mediump float;
+      varying vec2 vUv;
+      uniform sampler2D tDiffuse;
+      uniform vec3 uPalette[12];
+      uniform int uPaletteSize;
+      uniform float uUsePalette, uUseDither;
+      uniform vec2 uResolution;
+      float bayer(vec2 p){
+        int x=int(mod(p.x,4.)),y=int(mod(p.y,4.)),i=x+y*4;
+        if(i==0)return 0.;if(i==1)return 8.;if(i==2)return 2.;if(i==3)return 10.;
+        if(i==4)return 12.;if(i==5)return 4.;if(i==6)return 14.;if(i==7)return 6.;
+        if(i==8)return 3.;if(i==9)return 11.;if(i==10)return 1.;if(i==11)return 9.;
+        if(i==12)return 15.;if(i==13)return 7.;if(i==14)return 13.;return 5.;
+      }
+      vec3 quantize(vec3 c){
+        float best=99.;vec3 bc=c;
+        for(int i=0;i<12;i++){if(i>=uPaletteSize)break;
+          vec3 d=c-uPalette[i];float dist=dot(d,d);
+          if(dist<best){best=dist;bc=uPalette[i];}}
+        return bc;
+      }
+      void main(){
+        vec3 c=texture2D(tDiffuse,vUv).rgb;
+        if(uUseDither>.5){float d=(bayer(vUv*uResolution/6.)/16.-.5)*.08;c+=vec3(d);}
+        if(uUsePalette>.5)c=quantize(c);
+        gl_FragColor=vec4(c,1.);
+      }`,
+  });
+  postScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), postMat));
+
+  document.getElementById('pxSize').oninput = e => {
+    pixelSize = parseInt(e.target.value);
+    document.getElementById('pxVal').textContent = pixelSize;
+    makeRT(); postMat.uniforms.tDiffuse.value = renderTarget.texture;
+  };
+  document.getElementById('paletteOn').onchange = e => postMat.uniforms.uUsePalette.value = e.target.checked ? 1 : 0;
+  document.getElementById('ditherOn').onchange = e => postMat.uniforms.uUseDither.value = e.target.checked ? 1 : 0;
+
+  // ═══════════════════════════════════════════════════════════
+  // STATES
+  // ═══════════════════════════════════════════════════════════
+  let currentState = 'idle', prevState = 'idle', blendT = 1;
+  const BT = 0.4;
+
+  function reset() {
+    cat.position.set(0, 0.35, 0);
+    cat.rotation.set(0, 0, 0);
+    body.scale.set(1.5, 0.95, 1.0);
+    headPivot.position.set(0.45, 0.15, 0);
+    headPivot.rotation.set(0, 0, 0);
+    earL.rotation.set(0, 0, 0); earR.rotation.set(0, 0, 0);
+    eyeL.scale.set(1, 1, 1); eyeR.scale.set(1, 1, 1);
+    tailRoot.rotation.set(0, 0, 0.5);
+    tailSegments.forEach((s, i) => { if (i > 0) s.rotation.set(0, 0, 0); });
+    legFL.rotation.set(0,0,0); legFR.rotation.set(0,0,0);
+    legBL.rotation.set(0,0,0); legBR.rotation.set(0,0,0);
+  }
+
+  const S = {
+    idle: (t, dt, w) => {
+      body.scale.y += Math.sin(t*1.5)*.025*w;
+      body.scale.x += Math.sin(t*1.5)*.012*w;
+      tailSegments.forEach((s,i) => { if(i) s.rotation.y += Math.sin(t*.8+i*.5)*.15*w; });
+      earR.rotation.z += Math.max(0, Math.sin(t*.7)-.95)*15*.3*w;
+    },
+    happy: (t, dt, w) => {
+      cat.position.y += Math.abs(Math.sin(t*4))*.04*w;
+      tailSegments.forEach((s,i) => {
+        if(!i) tailRoot.rotation.z += Math.sin(t*6)*.2*w;
+        else s.rotation.y += Math.sin(t*6-i*.6)*.35*w;
+      });
+      eyeL.scale.y = 1-.6*w; eyeR.scale.y = 1-.6*w;
+      earL.rotation.x += .2*w; earR.rotation.x += .2*w;
+    },
+    sleeping: (t, dt, w) => {
+      cat.position.y += -.18*w;
+      cat.rotation.z += .15*w; cat.rotation.x += .3*w;
+      body.scale.y += Math.sin(t*.6)*.04*w;
+      eyeL.scale.y = 1-.95*w; eyeR.scale.y = 1-.95*w;
+      headPivot.rotation.z += -.2*w; headPivot.position.y += -.05*w;
+      tailRoot.rotation.z += -.4*w;
+      tailSegments.forEach((s,i) => { if(i) s.rotation.y += .4*w; });
+      earL.rotation.z += .3*w; earR.rotation.z += -.3*w;
+    },
+    alert: (t, dt, w) => {
+      body.scale.y += .05*w;
+      earL.rotation.z += -.15*w; earR.rotation.z += .15*w;
+      earL.rotation.x += -.1*w; earR.rotation.x += -.1*w;
+      eyeL.scale.y = 1+.2*w; eyeR.scale.y = 1+.2*w;
+      headPivot.rotation.y += Math.sin(t*.8)*.4*w;
+      tailRoot.rotation.z += .7*w;
+      tailSegments.forEach((s,i) => { if(i>=3) s.rotation.y += Math.sin(t*8)*.08*w; });
+    },
+    playful: (t, dt, w) => {
+      cat.position.y += Math.max(0,Math.sin(t*5))*.25*w;
+      body.scale.y -= (1-Math.max(0,Math.sin(t*5)))*.1*w;
+      const p = t*5;
+      legFL.rotation.z += Math.sin(p)*.4*w;
+      legFR.rotation.z += Math.sin(p+Math.PI)*.4*w;
+      legBL.rotation.z += Math.sin(p+Math.PI)*.4*w;
+      legBR.rotation.z += Math.sin(p)*.4*w;
+      tailRoot.rotation.z += Math.sin(t*9)*.3*w;
+      tailSegments.forEach((s,i) => { if(i) s.rotation.y += Math.sin(t*12-i*.4)*.5*w; });
+      headPivot.rotation.x += Math.sin(t*5)*.15*w;
+    },
+    thinking: (t, dt, w) => {
+      headPivot.rotation.z += -.25*w;
+      headPivot.rotation.y += Math.sin(t*.4)*.2*w;
+      headPivot.position.y += .04*w;
+      tailRoot.rotation.z += Math.sin(t*.5)*.2*w;
+      tailSegments.forEach((s,i) => { if(i) s.rotation.y += Math.sin(t*.5-i*.4)*.2*w; });
+      earL.rotation.x += -.1*w;
+      earR.rotation.z += Math.sin(t*2)*.1*w;
+      body.scale.y += Math.sin(t*1.2)*.02*w;
+    },
+    hungry: (t, dt, w) => {
+      headPivot.rotation.z += -.7*w;
+      headPivot.position.y += -.12*w;
+      headPivot.position.x += .05*w;
+      tailRoot.rotation.z += (-.3-Math.max(0,Math.sin(t*7))*.4)*w;
+      earL.rotation.x += .25*w; earR.rotation.x += .25*w;
+      earL.rotation.z += -.05*w; earR.rotation.z += .05*w;
+      body.scale.x += .05*w; cat.position.y += -.03*w;
+      eyeL.scale.y = 1+.1*w; eyeR.scale.y = 1+.1*w;
+    },
+
+    // SATIATED — sleeping pose + inflated body (big meal)
+    satiated: (t, dt, w) => {
+      cat.position.y += -.18*w;
+      cat.rotation.z += .15*w; cat.rotation.x += .3*w;
+      // Inflated body — noticeably round
+      body.scale.x += .2*w;
+      body.scale.y += .28*w;
+      body.scale.z += .25*w;
+      // Slow deep breath of a full belly
+      body.scale.y += Math.sin(t*.4)*.06*w;
+      body.scale.x += Math.sin(t*.4)*.03*w;
+      eyeL.scale.y = 1-.95*w; eyeR.scale.y = 1-.95*w;
+      headPivot.rotation.z += -.2*w; headPivot.position.y += -.05*w;
+      tailRoot.rotation.z += -.4*w;
+      tailSegments.forEach((s,i) => { if(i) s.rotation.y += .3*w + Math.sin(t*1.2-i*.3)*.05*w; });
+      earL.rotation.z += .3*w; earR.rotation.z += -.3*w;
+    },
+
+    // LAZY — belly-up on the floor, legs sprawled wide, head resting to one side
+    lazy: (t, dt, w) => {
+      // Roll onto back (π around X = head-to-tail axis)
+      cat.rotation.x += Math.PI * w;
+      // Raise cat so that when flipped, back rests ON the floor
+      // Body radius * scaleY ≈ 0.304. Need center at ~0.30 so back touches y=0.
+      // Head pivot at cat-local y=0.15 flips to -0.15 → need to cancel that.
+      cat.position.y += -0.05 * w;  // from 0.35 → 0.30
+      // Pull head up to body centerline so it rests on floor, not through it
+      headPivot.position.y += -0.15 * w;  // cancel the default +0.15 offset
+      // Head turned to one side, resting
+      headPivot.rotation.y += 0.5 * w;
+      headPivot.rotation.z += 0.15 * w;
+
+      // Slow lazy breath
+      body.scale.y += Math.sin(t * 0.7) * 0.04 * w;
+
+      // Legs sprawled wide in all directions — full sploot
+      legFL.rotation.z += -0.9 * w;   // front left → out to the side
+      legFL.rotation.x += -0.6 * w;   // also forward
+
+      legFR.rotation.z += 0.9 * w;    // front right → opposite side
+      legFR.rotation.x += -0.6 * w;   // also forward
+
+      legBL.rotation.z += -0.7 * w;   // back left → out
+      legBL.rotation.x += 0.6 * w;    // also backward
+
+      legBR.rotation.z += 0.7 * w;    // back right → out
+      legBR.rotation.x += 0.6 * w;    // also backward
+
+      // Eyes half-closed — awake but unbothered
+      eyeL.scale.y = 1 - 0.6 * w;
+      eyeR.scale.y = 1 - 0.6 * w;
+
+      // Tail flat on the floor, occasional lazy flick
+      tailRoot.rotation.z += -0.5 * w;  // cancel upward tilt, tail lies flat
+      const flick = Math.max(0, Math.sin(t * 0.5) - 0.88) * 8;
+      tailSegments.forEach((s, i) => {
+        if (i > 0) s.rotation.y += flick * 0.2 * w;
+      });
+    },
+
+    fear: (t, dt, w) => {
+      cat.position.y += -.12*w;
+      body.scale.y -= .15*w; body.scale.x += .1*w;
+      cat.position.x += Math.sin(t*30)*.012*w;
+      earL.rotation.z += .7*w; earR.rotation.z += -.7*w;
+      earL.rotation.x += .3*w; earR.rotation.x += .3*w;
+      headPivot.position.y += -.08*w; headPivot.rotation.z += -.1*w;
+      eyeL.scale.y = 1+.4*w; eyeR.scale.y = 1+.4*w;
+      eyeL.scale.x = 1+.3*w; eyeR.scale.x = 1+.3*w;
+      tailRoot.rotation.z += -1*w; tailRoot.rotation.y += .3*w;
+      legFL.rotation.z += .2*w; legFR.rotation.z += -.2*w;
+    },
+    attitude: (t, dt, w) => {
+      headPivot.position.y += .06*w;
+      headPivot.rotation.z += .25*w; headPivot.rotation.y += -.15*w;
+      eyeL.scale.y = 1-.4*w; eyeR.scale.y = 1-.4*w;
+      tailRoot.rotation.z += .9*w;
+      tailSegments.forEach((s,i) => { if(i) s.rotation.z += Math.sin(t*1.5-i*.2)*.08*w; });
+      cat.rotation.z += Math.sin(t*1.5)*.05*w;
+      cat.position.x += Math.sin(t*1.5)*.04*w;
+      earL.rotation.z += -.1*w; earR.rotation.z += .2*w;
+    },
+    confused: (t, dt, w) => {
+      headPivot.rotation.z += .5*w;
+      headPivot.rotation.y += Math.sin(t*1.2)*.15*w;
+      earL.rotation.z += -.25*w; earL.rotation.x += -.1*w;
+      earR.rotation.z += .5*w;
+      eyeL.scale.y = 1+.25*w; eyeR.scale.y = 1+.25*w;
+      tailRoot.rotation.z += .1*w;
+      tailSegments.forEach((s,i) => { if(i>=3) s.rotation.y += Math.sin(t*4)*.05*w; });
+      body.scale.y += Math.sin(t)*.015*w;
+    },
+  };
+
+  document.querySelectorAll('#states button').forEach(b => {
+    b.onclick = () => {
+      const s = b.dataset.state;
+      if (s === currentState) return;
+      prevState = currentState; currentState = s; blendT = 0;
+      document.querySelectorAll('#states button').forEach(x => x.classList.toggle('on', x === b));
+      document.getElementById('stateName').textContent = s;
+    };
+  });
+
+  const clock = new THREE.Clock();
+  let t = 0;
+  resize();
+
+  function tick() {
+    const dt = Math.min(0.05, clock.getDelta());
+    t += dt;
+    blendT = Math.min(1, blendT + dt / BT);
+    const w1 = blendT, w0 = 1 - blendT;
+    reset();
+    if (w0 > .001) S[prevState](t, dt, w0);
+    S[currentState](t, dt, w1);
+    updateCamera();
+    renderer.setRenderTarget(renderTarget);
+    renderer.render(scene, camera);
+    renderer.setRenderTarget(null);
+    renderer.render(postScene, orthoCam);
+    requestAnimationFrame(tick);
+  }
+  tick();
+  window.addEventListener('resize', resize);
+})();
+</script>
+</body>
+</html>

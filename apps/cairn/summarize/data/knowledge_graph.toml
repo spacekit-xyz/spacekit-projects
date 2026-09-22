@@ -1,0 +1,28 @@
+# Topic routing for Cairn summarizer brain.
+
+[[nodes]]
+topic = "summarize"
+concept = "GeneralKnowledge"
+category = "cairn"
+priority = 30
+[[nodes.rules]]
+any = [
+  "summarize",
+  "summary",
+  "summarise",
+  "tl;dr",
+  "tldr",
+  "brief",
+  "condense",
+  "short version",
+]
+
+[[nodes]]
+topic = "summarize"
+concept = "GeneralKnowledge"
+category = "cairn"
+priority = 5
+[[nodes.rules]]
+
+[action_target_concepts]
+summarize = "GeneralKnowledge"

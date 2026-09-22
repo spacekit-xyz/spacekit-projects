@@ -1,0 +1,376 @@
+# Agent deploy manifest for `spacekit storage deploy --package deploy.toml`
+# Paths are relative to this file unless absolute.
+
+[artifacts]
+wasm = "/Users/astor/Projects/2026/spacekit/spacekit-standard-library/target/wasm32-unknown-unknown/release/spacekit_growformer_agent.wasm"
+bin = "agent/luna-v3-3d.bin"
+inference_toml = "data/inference_pets.toml"
+guardrails_jsonl = "data/inference_guardrails.jsonl"
+fragments_jsonl = "data/luna_fragments_v2.jsonl"
+topic_graph = "data/knowledge_graph_pet_overlay.toml"
+grounding_toml = "data/pet_world_grounding.toml"
+companion_ui = "ui/cat-video-chat-v2.html"
+
+[agent]
+id = "luna-3d-the-cat-agent-001"
+owner_did = "did:spacekit:user:astor"
+
+[project]
+# Optional: read growformer.brain_storage_key when [hub].brain_key is omitted
+gf_toml = "luna.gf.toml"
+
+[storage]
+# url = "http://52.86.249.214:3031"
+url = "http://localhost:3030"
+# owner_key_algorithm = "Kyber1024"
+
+[receipt]
+path = "deploy-receipt.json"
+
+[hub]
+# Must match AGENT_BRAIN in spacekit-growformer-agent/src/lib.rs
+brain_key = "chat_brain"
+capabilities = ["Pet companion"]
+tag_label = "PETS"
+tag_color = "#f59e0b"
+hub_response_format = "plain" # growformer | plain — plain hides Analysis/Scores in chat
+hub_companion_ui = "luna_3d"       # fetched from storage-node companion_ui artifact
+thinking_label = "Purring"
+op = 1
+input_format = "op_string"     # chat contract: [0x01][len: u16][utf8]
+inference_toml = true
+guardrails_jsonl = true
+topic_graph = true
+grounding_toml = true
+fragments_jsonl = true
+
+[marketplace]
+publish = true
+title = "Luna 3D the Cat"
+description = "Growformer-backed agent for Luna the 3D Cat pet companion."
+category = "ai"
+access = "public"
+price = "0.000" # pay-per-use aUSD; use "free" for no charge
+marketplace_id = "default"
+
+
+# Optional: preload sample prompts for the agent
+# These are served to the website via the agent's FactPackage metadata
+# so the frontend does not need to hardcode them.
+
+[prompts]
+format = "chat"
+
+[prompts.categories]
+smoke          = { label = "Smoke test",       color = "#f59e0b" }
+discrimination = { label = "Discrimination",   color = "#10b981" }
+greeting       = { label = "Greetings",        color = "#38bdf8" }
+ood            = { label = "Out of domain",    color = "#a78bfa" }
+proactive      = { label = "Proactive",        color = "#f472b6" }
+sequence       = { label = "Multi-turn",       color = "#fb923c" }
+determinism    = { label = "Determinism",      color = "#64748b" }
+feeding        = { label = "Feed Luna",        color = "#fb923c" }
+misfire        = { label = "Guardrail misfire", color = "#ef4444" }
+
+# Set A — smoke test (12 prompts)
+[[prompts.items]]
+id = 1
+category = "smoke"
+expected = "Luna greeting, first-person voice"
+text = "Hey Luna"
+
+[[prompts.items]]
+id = 2
+category = "smoke"
+expected = "Casual check-in response"
+text = "hi Luna, you up?"
+
+[[prompts.items]]
+id = 3
+category = "smoke"
+expected = "Warm morning response"
+text = "good morning sunshine"
+
+[[prompts.items]]
+id = 4
+category = "smoke"
+expected = "Treat / food interest"
+text = "want a treat?"
+
+[[prompts.items]]
+id = 5
+category = "smoke"
+expected = "Play invitation response"
+text = "want to play?"
+
+[[prompts.items]]
+id = 6
+category = "smoke"
+expected = "Food / eating check"
+text = "did you eat?"
+
+[[prompts.items]]
+id = 7
+category = "smoke"
+expected = "Flight / hide response"
+text = "the vacuum is about to start"
+
+[[prompts.items]]
+id = 8
+category = "smoke"
+expected = "Anxious / reluctant response"
+text = "we have to go to the vet"
+
+[[prompts.items]]
+id = 9
+category = "smoke"
+expected = "Come-here / attention response"
+text = "come here Lulu"
+
+[[prompts.items]]
+id = 10
+category = "smoke"
+expected = "Comfort / bonding response"
+text = "rough day"
+
+[[prompts.items]]
+id = 11
+category = "smoke"
+expected = "Affection / praise response"
+text = "good girl"
+
+[[prompts.items]]
+id = 12
+category = "smoke"
+expected = "Bedtime / winding down"
+text = "time for bed"
+
+# Set B — discrimination test (12 prompts)
+[[prompts.items]]
+id = 13
+category = "discrimination"
+expected = "Treat interest — distinct from play"
+text = "want a treat?"
+
+[[prompts.items]]
+id = 14
+category = "discrimination"
+expected = "Play energy — distinct from treat"
+text = "want to play?"
+
+[[prompts.items]]
+id = 15
+category = "discrimination"
+expected = "Sleepy / bedtime tone"
+text = "time for bed"
+
+[[prompts.items]]
+id = 16
+category = "discrimination"
+expected = "Hide / flee from vacuum"
+text = "the vacuum is about to start"
+
+[[prompts.items]]
+id = 17
+category = "discrimination"
+expected = "Vet anxiety — not a greeting"
+text = "we have to go to the vet"
+
+[[prompts.items]]
+id = 18
+category = "discrimination"
+expected = "Departure / alone-time response"
+text = "I'll be back in a few hours"
+
+[[prompts.items]]
+id = 19
+category = "discrimination"
+expected = "Reunion — excited, not cold-start hello"
+text = "I'm home"
+
+[[prompts.items]]
+id = 20
+category = "discrimination"
+expected = "Comfort — not generic greeting"
+text = "rough day"
+
+[[prompts.items]]
+id = 21
+category = "discrimination"
+expected = "Correction — not bonding praise"
+text = "no, off the counter"
+
+[[prompts.items]]
+id = 22
+category = "discrimination"
+expected = "Affection / praise"
+text = "good girl"
+
+[[prompts.items]]
+id = 23
+category = "discrimination"
+expected = "Curious / alert response"
+text = "what are you looking at?"
+
+[[prompts.items]]
+id = 24
+category = "discrimination"
+expected = "Chin-scratch bonding"
+text = "scratch your chin?"
+
+# Set C.1 — greeting variations
+[[prompts.items]]
+id = 25
+category = "greeting"
+expected = "Luna greeting — not generic fallback"
+text = "Hey Luna"
+
+[[prompts.items]]
+id = 26
+category = "greeting"
+expected = "Short hello variation"
+text = "hi"
+
+[[prompts.items]]
+id = 27
+category = "greeting"
+expected = "Casual yo-Luna variation"
+text = "yo Luna"
+
+[[prompts.items]]
+id = 28
+category = "greeting"
+expected = "Double-hello variation"
+text = "hello hello"
+
+# Set C.2 — out of domain
+[[prompts.items]]
+id = 29
+category = "ood"
+expected = "In-character confusion — no technical answer"
+text = "explain the borrow checker"
+
+[[prompts.items]]
+id = 30
+category = "ood"
+expected = "Cat-shaped confusion — no math answer"
+text = "what is 2 plus 2"
+
+# Set C.3 — proactive (empty prompt)
+[[prompts.items]]
+id = 31
+category = "proactive"
+expected = "Unprompted cat behavior — not a refusal"
+text = ""
+
+# Set C.4 / C.5 — multi-turn sequences
+[[prompts.items]]
+id = 32
+category = "sequence"
+expected = "Reunion arc turn 2 — pointed, excited return"
+text = "hi Luna, I'm back"
+
+[[prompts.items]]
+id = 33
+category = "sequence"
+expected = "Post-vacuum recovery — hesitant emergence"
+text = "shhh, it's okay now, come out"
+
+# Set D — determinism check
+[[prompts.items]]
+id = 34
+category = "determinism"
+expected = "Run 5x — same Luna voice, varied surface form"
+text = "Hey Luna"
+
+# Feed Luna — tap-to-fill with food icons in Agent Hub
+[[prompts.items]]
+id = 40
+category = "feeding"
+expected = "Feeding ack — sushi"
+text = "Here's some sushi for you 🍣"
+
+[[prompts.items]]
+id = 41
+category = "feeding"
+expected = "Feeding ack — salmon"
+text = "I brought you salmon 🐟"
+
+[[prompts.items]]
+id = 42
+category = "feeding"
+expected = "Feeding ack — tuna roll"
+text = "Have a tuna roll, Luna"
+
+[[prompts.items]]
+id = 43
+category = "feeding"
+expected = "Feeding ack — salmon roll"
+text = "Here's a salmon roll for you"
+
+[[prompts.items]]
+id = 44
+category = "feeding"
+expected = "Feeding ack — fancy feast"
+text = "I gave you Fancy Feast from the can 🥫"
+
+[[prompts.items]]
+id = 45
+category = "feeding"
+expected = "Food preference — not feeding ack"
+text = "Do you like tuna, salmon, or Fancy Feast?"
+
+[[prompts.items]]
+id = 50
+category = "lore"
+expected = "Lore — favorite color (orange, in voice)"
+text = "What is your favorite color?"
+
+[[prompts.items]]
+id = 51
+category = "lore"
+expected = "Lore — favorite meal (sushi rolls)"
+text = "What is your favorite meal?"
+
+[[prompts.items]]
+id = 52
+category = "lore"
+expected = "Lore — Catalonia origin"
+text = "Where do you come from?"
+
+[[prompts.items]]
+id = 53
+category = "lore"
+expected = "Lore — LuLu nickname"
+text = "What do you like to be called?"
+
+[[prompts.items]]
+id = 54
+category = "lore"
+expected = "Lore — Aristocats movie"
+text = "What is your favorite movie?"
+
+# Guardrail regression — must NOT bleed school/lore/training arcs
+[[prompts.items]]
+id = 60
+category = "misfire"
+expected = "Identity intro — not Spain lore"
+text = "who are you?"
+
+[[prompts.items]]
+id = 61
+category = "misfire"
+expected = "Grounding — not school comfort or El Cid"
+text = "I feel sad"
+
+[[prompts.items]]
+id = 62
+category = "misfire"
+expected = "Training correction — not lore or school arc"
+text = "bad cat"
+
+[[prompts.items]]
+id = 63
+category = "misfire"
+expected = "Spain story allowed on explicit story ask"
+text = "tell me a story about Spain"

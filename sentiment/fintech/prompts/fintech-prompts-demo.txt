@@ -1,0 +1,40 @@
+# Fintech Sentiment Analysis — Demo Prompt Cloud (25)
+# Pre-verified prompts for the demo UI prompt cloud.
+# Use: ./target/release/growformer --infer --brain agent-data/fintech-analysis/fintech-causal.bin --prompts-file data/fintech/fintech-prompts-demo.txt
+
+# --- TradFi market / desk (5) ---
+The two-ten spread un-inverted for the first time in eighteen months and nobody celebrated
+Best quarter the rates desk has had in five years — we printed money on every major trade
+Bond auction tailed by six basis points; dealers are sitting on way too much duration
+Stock gapped down on the open, bounced off VWAP, then bled out into the close anyway
+The CEO called the layoffs a "strategic realignment" while 3,000 people got walked out the door
+
+# --- Retail banking / consumer (5) ---
+The bank charged me three separate fees for the same transaction and customer service said there is nothing they can do
+Switched to the online bank last month and honestly the experience has been excellent — zero fees, instant notifications, great app
+The branch closed my account without warning and it took three weeks to get my money back
+I love the new mobile banking app — it's fast, clean, and the check deposit works perfectly
+The refinance closed in under three weeks with zero surprises — best lending experience I've ever had
+
+# --- Corporate / earnings / M&A (4) ---
+Revenue grew 12% but operating margin contracted 400 basis points — street sold it hard
+The activist took a 9% stake and the CEO resigned within the week
+Synergy targets were $500M; the integration team already found $700M in redundancies
+The stock lost half its value after the accounting restatement and now the auditors are under investigation too
+
+# --- General sentiment — sarcasm / mixed / calibration (4) ---
+Oh great, another maintenance window during trading hours. Exactly what I needed today
+The app crashed during market hours but at least the notification about planned downtime came through — two hours after it ended
+It's not great, but it's the least bad option for international wires under $10K
+The new mobile app is genuinely good — fast, clean, and the check deposit actually works first try
+
+# --- Slang / register (4) ---
+I hate working with this prime broker; they botched the margin call and we lost the entire position
+Horrible experience with the wire desk — they botched the SWIFT code and my payment ended up in the wrong country
+The analyst upgrade was a nothing-burger; stock didn't even twitch on the print
+Crushed earnings, raised guidance, stock red anyway because algo read "headcount" in the transcript
+
+# --- Edge cases (3) ---
+What's the difference between a fixed and variable rate mortgage?
+ISIN US0378331005 coupon 3.25% maturity 2031-05-15
+The payment processor suffered a data breach exposing 47 million card numbers and has suspended all transactions pending investigation

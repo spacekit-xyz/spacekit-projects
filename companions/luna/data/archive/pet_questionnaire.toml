@@ -1,0 +1,410 @@
+# Pet Personality Questionnaire — v0.1
+#
+# Owner-facing questionnaire that produces an OCEAN trait vector via deterministic
+# answer→delta mapping. Each pet starts at the baseline (all traits = 0.5) and each
+# answered question shifts one or two traits by its declared delta.
+#
+# Flow:
+#   1. User: "create a {species} named {name}"
+#   2. Contract initializes pet with baseline OCEAN (all 0.5), persists to storage.
+#   3. Contract returns first question. Each pet_questionnaire turn answers one
+#      question and returns the next, until all 15 are answered or user opts out.
+#   4. After Q15 (or early-exit), contract:
+#        a. Sums deltas, clamps each trait to [0.0, 1.0].
+#        b. Walks the grounding to resolve the nearest archetype node.
+#        c. Updates the pet record, marks setup_complete = true.
+#        d. Calls the resolved archetype brain to produce a first in-character message.
+#   5. Subsequent turns flow to action_target: "pet_chat".
+#
+# Trait keys: O (openness), C (conscientiousness), E (extraversion),
+#             A (agreeableness), N (neuroticism).
+#
+# Delta magnitudes:
+#   ±0.15  strong indicator    (rare; used when the answer is unambiguously diagnostic)
+#   ±0.10  moderate indicator  (typical)
+#   ±0.05  mild indicator      (when an answer leans but doesn't commit)
+#
+# 15 questions × max ~0.15 per trait per question = trait can swing up to ±0.45
+# from baseline, giving a comfortable [0.05, 0.95] practical range with no clamping
+# in normal answer patterns.
+
+version = 1
+
+[meta]
+name = "Pet Personality Questionnaire"
+description = "Maps owner responses to a five-dimensional OCEAN trait vector."
+baseline = { O = 0.5, C = 0.5, E = 0.5, A = 0.5, N = 0.5 }
+question_count = 15
+
+# ───────────────────────────────────────────────────────────────────
+#  Q1 — New stimulus / openness probe
+# ───────────────────────────────────────────────────────────────────
+[[question]]
+id = "q01_new_toy"
+text = "You bring home a brand new toy and set it on the floor. What does your pet do?"
+primary_traits = ["O", "E"]
+
+[[question.answer]]
+id = "a"
+text = "Pounces on it immediately — has to investigate everything new"
+trait_deltas = { O = 0.10, E = 0.10 }
+
+[[question.answer]]
+id = "b"
+text = "Approaches slowly, sniffs and circles before engaging"
+trait_deltas = { O = 0.05, N = 0.05 }
+
+[[question.answer]]
+id = "c"
+text = "Glances at it from across the room. Maybe later. Maybe never."
+trait_deltas = { O = -0.10, E = -0.05 }
+
+# ───────────────────────────────────────────────────────────────────
+#  Q2 — Stranger at the door
+# ───────────────────────────────────────────────────────────────────
+[[question]]
+id = "q02_stranger_door"
+text = "Someone your pet has never met rings the doorbell. What's the reaction?"
+primary_traits = ["E", "N"]
+
+[[question.answer]]
+id = "a"
+text = "Beelines to the door, ready to make a new best friend"
+trait_deltas = { E = 0.15, A = 0.05, N = -0.05 }
+
+[[question.answer]]
+id = "b"
+text = "Watches alertly from a safe distance, decides based on the vibe"
+trait_deltas = { E = 0.00, N = 0.05 }
+
+[[question.answer]]
+id = "c"
+text = "Disappears under the bed and stays there for an hour"
+trait_deltas = { E = -0.10, N = 0.15 }
+
+# ───────────────────────────────────────────────────────────────────
+#  Q3 — Routine disruption / conscientiousness probe
+# ───────────────────────────────────────────────────────────────────
+[[question]]
+id = "q03_late_meal"
+text = "It's 30 minutes past mealtime and you haven't fed them yet. What happens?"
+primary_traits = ["C", "N"]
+
+[[question.answer]]
+id = "a"
+text = "Stares at me from beside the bowl. Possibly the food bowl. Possibly my soul."
+trait_deltas = { C = 0.15, N = 0.05 }
+
+[[question.answer]]
+id = "b"
+text = "Mentions it once, then goes about their day"
+trait_deltas = { C = 0.05 }
+
+[[question.answer]]
+id = "c"
+text = "Hasn't noticed. Will be confused when food appears."
+trait_deltas = { C = -0.10 }
+
+# ───────────────────────────────────────────────────────────────────
+#  Q4 — Owner reunion / agreeableness + extraversion
+# ───────────────────────────────────────────────────────────────────
+[[question]]
+id = "q04_owner_return"
+text = "You come home after being out all day. What does your pet do?"
+primary_traits = ["A", "E"]
+
+[[question.answer]]
+id = "a"
+text = "Full-body excited greeting — can't contain themselves"
+trait_deltas = { A = 0.10, E = 0.15 }
+
+[[question.answer]]
+id = "b"
+text = "Comes over for a hello, maybe a lean or a head-bump, then goes back to what they were doing"
+trait_deltas = { A = 0.10, E = 0.05 }
+
+[[question.answer]]
+id = "c"
+text = "Opens one eye from the couch. Considers acknowledging me. Doesn't."
+trait_deltas = { A = -0.05, E = -0.10 }
+
+# ───────────────────────────────────────────────────────────────────
+#  Q5 — Loud noise / neuroticism
+# ───────────────────────────────────────────────────────────────────
+[[question]]
+id = "q05_loud_noise"
+text = "There's a sudden loud noise — a dropped pan, fireworks, thunder. The reaction?"
+primary_traits = ["N"]
+
+[[question.answer]]
+id = "a"
+text = "Bolts. Whole-body alarm. Hiding for the next hour."
+trait_deltas = { N = 0.15 }
+
+[[question.answer]]
+id = "b"
+text = "Startles, looks around, recovers in a minute"
+trait_deltas = { N = 0.00 }
+
+[[question.answer]]
+id = "c"
+text = "Lifts head. Decides it's not their problem. Resumes nap."
+trait_deltas = { N = -0.15 }
+
+# ───────────────────────────────────────────────────────────────────
+#  Q6 — Alone time / extraversion probe (inverse)
+# ───────────────────────────────────────────────────────────────────
+[[question]]
+id = "q06_alone_time"
+text = "When you're working in another room and they're alone, what happens?"
+primary_traits = ["E", "A"]
+
+[[question.answer]]
+id = "a"
+text = "Follows me. Always. Sits on the keyboard if necessary."
+trait_deltas = { E = 0.10, A = 0.10 }
+
+[[question.answer]]
+id = "b"
+text = "Checks in periodically, then settles somewhere nearby"
+trait_deltas = { E = 0.05, A = 0.05 }
+
+[[question.answer]]
+id = "c"
+text = "Has their own agenda. Probably napping. Doesn't notice I'm working."
+trait_deltas = { E = -0.10 }
+
+# ───────────────────────────────────────────────────────────────────
+#  Q7 — Problem-solving / openness + conscientiousness
+# ───────────────────────────────────────────────────────────────────
+[[question]]
+id = "q07_puzzle_toy"
+text = "You give them a puzzle toy with treats hidden inside. What happens next?"
+primary_traits = ["O", "C"]
+
+[[question.answer]]
+id = "a"
+text = "Methodically works it out, treat by treat, focused"
+trait_deltas = { O = 0.10, C = 0.15 }
+
+[[question.answer]]
+id = "b"
+text = "Bashes it around enthusiastically until treats fall out"
+trait_deltas = { O = 0.05, C = -0.05, E = 0.05 }
+
+[[question.answer]]
+id = "c"
+text = "Gives up after 30 seconds. Looks at me. Suggests I do it."
+trait_deltas = { O = -0.05, C = -0.10 }
+
+# ───────────────────────────────────────────────────────────────────
+#  Q8 — Other pet / agreeableness
+# ───────────────────────────────────────────────────────────────────
+[[question]]
+id = "q08_other_pet"
+text = "A friend brings their pet over for the first time. How does yours handle it?"
+primary_traits = ["A", "N"]
+
+[[question.answer]]
+id = "a"
+text = "Welcoming — wants to play or at least share space"
+trait_deltas = { A = 0.15, E = 0.05 }
+
+[[question.answer]]
+id = "b"
+text = "Coexists peacefully, mostly ignores them"
+trait_deltas = { A = 0.05 }
+
+[[question.answer]]
+id = "c"
+text = "Tension. Possibly a standoff. Whole apartment is on edge."
+trait_deltas = { A = -0.10, N = 0.10 }
+
+# ───────────────────────────────────────────────────────────────────
+#  Q9 — Affection acceptance / agreeableness
+# ───────────────────────────────────────────────────────────────────
+[[question]]
+id = "q09_cuddle_offer"
+text = "You sit down and pat the spot next to you, inviting them over. Reaction?"
+primary_traits = ["A", "E"]
+
+[[question.answer]]
+id = "a"
+text = "Already there. Snuggled in. Purring or sighing happily."
+trait_deltas = { A = 0.15, E = 0.10 }
+
+[[question.answer]]
+id = "b"
+text = "Considers it, then joins after a moment on their own terms"
+trait_deltas = { A = 0.05 }
+
+[[question.answer]]
+id = "c"
+text = "Looks at the spot. Looks at me. Goes to sit somewhere else."
+trait_deltas = { A = -0.10, E = -0.05 }
+
+# ───────────────────────────────────────────────────────────────────
+#  Q10 — Vet visit / neuroticism
+# ───────────────────────────────────────────────────────────────────
+[[question]]
+id = "q10_vet_visit"
+text = "Annual vet checkup. How's the carrier ride and the waiting room?"
+primary_traits = ["N"]
+
+[[question.answer]]
+id = "a"
+text = "Whole experience is a disaster. Shaking, vocalizing, hiding."
+trait_deltas = { N = 0.15 }
+
+[[question.answer]]
+id = "b"
+text = "Doesn't love it, but handles it. A little tense but manageable."
+trait_deltas = { N = 0.05 }
+
+[[question.answer]]
+id = "c"
+text = "Bored. Possibly making friends with the other patients."
+trait_deltas = { N = -0.15, A = 0.05 }
+
+# ───────────────────────────────────────────────────────────────────
+#  Q11 — Boredom response / openness + extraversion
+# ───────────────────────────────────────────────────────────────────
+[[question]]
+id = "q11_boredom"
+text = "Rainy day, can't go outside, nothing planned. What do they do?"
+primary_traits = ["O", "E"]
+
+[[question.answer]]
+id = "a"
+text = "Invents games. Knocks things off shelves. Rearranges the household."
+trait_deltas = { O = 0.10, E = 0.10 }
+
+[[question.answer]]
+id = "b"
+text = "Drifts between favorite spots, asks for occasional attention"
+trait_deltas = { O = 0.00, E = 0.05 }
+
+[[question.answer]]
+id = "c"
+text = "Sleeps. The whole day. Bliss."
+trait_deltas = { O = -0.05, E = -0.10 }
+
+# ───────────────────────────────────────────────────────────────────
+#  Q12 — Training receptivity / conscientiousness + agreeableness
+# ───────────────────────────────────────────────────────────────────
+[[question]]
+id = "q12_training"
+text = "You try to teach them a new behavior — sit, shake, come when called. How does it go?"
+primary_traits = ["C", "A"]
+
+[[question.answer]]
+id = "a"
+text = "Eager to please, picks it up fast, wants more"
+trait_deltas = { C = 0.10, A = 0.10 }
+
+[[question.answer]]
+id = "b"
+text = "Will do it for treats. Will not do it without treats."
+trait_deltas = { C = 0.00 }
+
+[[question.answer]]
+id = "c"
+text = "Has thought about it, and respectfully declines"
+trait_deltas = { C = -0.10, A = -0.10 }
+
+# ───────────────────────────────────────────────────────────────────
+#  Q13 — Mood baseline / neuroticism (inverse)
+# ───────────────────────────────────────────────────────────────────
+[[question]]
+id = "q13_default_mood"
+text = "When nothing in particular is happening, the default emotional setting is:"
+primary_traits = ["N"]
+
+[[question.answer]]
+id = "a"
+text = "Cheerful and easy — small things make them happy"
+trait_deltas = { N = -0.10, A = 0.05 }
+
+[[question.answer]]
+id = "b"
+text = "Even-keeled, mostly relaxed"
+trait_deltas = { N = -0.05 }
+
+[[question.answer]]
+id = "c"
+text = "On the lookout. Always slightly braced for something."
+trait_deltas = { N = 0.15 }
+
+# ───────────────────────────────────────────────────────────────────
+#  Q14 — Independence / extraversion (inverse) + openness
+# ───────────────────────────────────────────────────────────────────
+[[question]]
+id = "q14_exploration_off_leash"
+text = "Off-leash in a safe new place — open field, fenced yard, big airy room. What now?"
+primary_traits = ["O", "E"]
+
+[[question.answer]]
+id = "a"
+text = "Stays close to me, checks in every few minutes"
+trait_deltas = { E = 0.10, A = 0.05 }
+
+[[question.answer]]
+id = "b"
+text = "Explores in widening circles, comes back when called"
+trait_deltas = { O = 0.10, C = 0.05 }
+
+[[question.answer]]
+id = "c"
+text = "Gone. Investigating something I can't see. Recall will take some convincing."
+trait_deltas = { O = 0.15, C = -0.10 }
+
+# ───────────────────────────────────────────────────────────────────
+#  Q15 — Conflict / agreeableness + neuroticism
+# ───────────────────────────────────────────────────────────────────
+[[question]]
+id = "q15_being_told_no"
+text = "You firmly say 'no' to something they were about to do. Response?"
+primary_traits = ["A", "C"]
+
+[[question.answer]]
+id = "a"
+text = "Stops immediately. Looks sheepish. Wants to be friends again."
+trait_deltas = { A = 0.10, C = 0.05 }
+
+[[question.answer]]
+id = "b"
+text = "Pauses, considers their options, sometimes complies"
+trait_deltas = { C = 0.00 }
+
+[[question.answer]]
+id = "c"
+text = "Continues. Eye contact maintained throughout."
+trait_deltas = { A = -0.10, C = -0.10 }
+
+# ═══════════════════════════════════════════════════════════════════
+#  Archetype resolution
+#
+#  After all 15 deltas are summed and clamped to [0,1], the orchestrator
+#  walks the grounding to find the archetype with the smallest distance
+#  between its anchor edges and the resolved trait vector.
+#
+#  This block declares the archetype's target trait profile so the
+#  resolver can compute the distance. Same archetype set as defined in
+#  pet_world_grounding.toml LAYER 3.
+# ═══════════════════════════════════════════════════════════════════
+
+[[archetype]]
+id = "cheerful_companion"
+target = { O = 0.6, C = 0.5, E = 0.8, A = 0.8, N = 0.3 }
+brain_key = "spacekit/pet_chat_cheerful@1"
+
+[[archetype]]
+id = "dignified_observer"
+target = { O = 0.5, C = 0.5, E = 0.3, A = 0.4, N = 0.3 }
+brain_key = "spacekit/pet_chat_dignified@1"
+
+# Future archetypes (placeholders for v0.2):
+#   anxious_devoted    — high E, high A, high N (the worried-but-loving type)
+#   spirited_independent — high O, low A, mid N (the trickster)
+#   gentle_steady      — mid E, high A, low N (the calm therapy-pet type)
+#   playful_chaos      — high O, low C, high E (the goofball)

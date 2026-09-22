@@ -1,0 +1,1 @@
+{"task_id": "capture_20260719_202505_0001", "text": "I feel sad", "semantic_intent": "emotional_support", "domain": "pet", "action_target": "pet_chat", "policy_regime": "default", "language_channel": "english", "expected_response": null, "expected_code": null, "provenance": {"kind": "PromotedCapture", "reviewed": true}}

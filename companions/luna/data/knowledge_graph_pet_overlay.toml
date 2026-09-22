@@ -1,0 +1,973 @@
+# Knowledge graph overlay for Luna the cat.
+# Merged on top of `knowledge_graph.toml` (Luna base — pet anchors + action_target map).
+# Routes pet-directed messages to the pet_chat brain via the PetCompanion concept.
+#
+# Priority 16 sits above generic sentiment (~14) so pet-specific phrases win,
+# but below specific coding nodes (~18–20) so "let's play with this Rust code"
+# routes to coding rather than play_invitation. Name-bearing phrases use
+# priority 17 since "Luna" is a strong specific signal.
+#
+# `topic` values match the semantic_intent labels in luna_seed.jsonl so the
+# routed prompt lands on the right sub-lattice inside the pet brain.
+#
+# ─── HACKATHON FORK INSTRUCTIONS ──────────────────────────────────
+# When forking this for a different pet (Lupita the llama, Spark the dragon,
+# Toast the capybara, etc.):
+#   1. Replace "luna" / "lulu" / "kitty" with your pet's name and nicknames.
+#   2. Swap species-specific vocabulary in concept_keywords:
+#        meow → hum (llama), squeak (capybara), roar (dragon)
+#        purr → orgle (llama), churr (capybara), rumble (dragon)
+#        feather wand / laser → species-appropriate toys
+#        the carrier → the harness, the saddle, the perch, etc.
+#   3. Adjust trigger nodes for your species' fears
+#      (vacuum/vet/thunder for cats; transport/shearing/storms for llamas).
+#   4. Keep the topic names and category structure — those match the
+#      semantic_intent labels in your training JSONL and must stay aligned.
+# ──────────────────────────────────────────────────────────────────
+
+# ==========================================================================
+# Greetings & status checks
+# ==========================================================================
+
+[[nodes]]
+topic = "greeting_check_in"
+concept = "PetCompanion"
+category = "pet_chat_nl"
+priority = 18
+[[nodes.rules]]
+any = [
+  "hey luna",
+  "hi luna",
+  "hello luna",
+  "morning luna",
+  "good morning luna",
+  "good morning sunshine",
+  "hi luna, you up",
+  "luna you up",
+  "you up luna",
+  "hi pretty girl",
+  "hi pretty",
+  "hi sweetie",
+  "luna,",
+  "you up?",
+  "wake up sleepy",
+  "wake up luna",
+  "where've you been",
+  "where have you been",
+  "what's up cat",
+  "i see you",
+  "yo luna",
+  "yo",
+  "sup",
+  "sup luna",
+  "hey",
+  "hi",
+  "hello",
+  "hi there",
+  "hey there",
+  "hello hello",
+  "morning",
+  "good morning",
+  "good morning fluffball",
+  "hi baby",
+  "pspsps",
+  "pspspsps",
+  "pspspsp",
+  "Luna!",
+  "luna!",
+  "hi luna!",
+  "hey luna!",
+  "good morning pretty",
+  "good morning girl",
+  "hiya",
+  "howdy",
+  "hi love",
+  "hey sweetie",
+  "hey pretty",
+]
+[[nodes.rules]]
+any = [
+  "hi kitty",
+  "hello kitty",
+  "hey kitty",
+]
+
+[[nodes]]
+topic = "status_check"
+concept = "PetCompanion"
+category = "pet_chat_nl"
+priority = 16
+[[nodes.rules]]
+any = [
+  "how are you luna",
+  "you okay luna",
+  "are you okay sweetie",
+  "are you okay pretty",
+  "what's wrong luna",
+  "feeling okay luna",
+  "so quiet today",
+  "you seem quiet",
+  "you alright",
+  "did you eat",
+  "have you eaten",
+  "did you finish your food",
+  "did you get breakfast",
+]
+
+# ==========================================================================
+# Mealtime & treats
+# ==========================================================================
+
+[[nodes]]
+topic = "mealtime_request"
+concept = "PetCompanion"
+category = "pet_chat_nl"
+priority = 16
+[[nodes.rules]]
+any = [
+  "are you hungry",
+  "want food",
+  "ready for dinner",
+  "dinner time",
+  "breakfast time",
+  "i'll get you breakfast",
+  "feeding time",
+  "your bowl",
+  "the bowl is empty",
+  "what's that smell",
+  "are you starving",
+]
+
+[[nodes]]
+topic = "treat_offer"
+concept = "PetCompanion"
+category = "pet_chat_nl"
+priority = 16
+[[nodes.rules]]
+any = [
+  "want a treat",
+  "here's a treat",
+  "treat time",
+  "have a treat",
+  "no more treats",
+]
+
+# ==========================================================================
+# Play
+# ==========================================================================
+
+[[nodes]]
+topic = "play_invitation"
+concept = "PetCompanion"
+category = "pet_chat_nl"
+priority = 16
+[[nodes.rules]]
+any = [
+  "want to play",
+  "wanna play",
+  "let's play",
+  "play time",
+  "feather wand",
+  "laser pointer",
+  "where's your toy",
+  "where's your mouse",
+  "look what i have",
+  "got your favorite",
+]
+
+[[nodes]]
+topic = "playful_attention_seeking"
+concept = "PetCompanion"
+category = "pet_chat_nl"
+priority = 16
+[[nodes.rules]]
+any = [
+  "why are you on my",
+  "off my keyboard",
+  "get off my keyboard",
+  "why are you yowling",
+  "why are you meowing",
+  "just one more chapter",
+  "stop knocking",
+  "what are you doing",
+  # Accusatory / startle — Luna plays innocent or owns the mischief
+  "who broke this",
+  "who did this",
+  "did you do this",
+  "you knocked",
+  "you broke",
+  "you scared me",
+  "you startled me",
+  "did you do that",
+  "stop that",
+]
+
+# ==========================================================================
+# Bonding & affection
+# ==========================================================================
+
+[[nodes]]
+topic = "bonding_request"
+concept = "PetCompanion"
+category = "pet_chat_nl"
+priority = 16
+[[nodes.rules]]
+any = [
+  "come here",
+  "come here luna",
+  "come here lulu",
+  "come here sweetie",
+  "come here pretty",
+  "lap time",
+  "scratch your chin",
+  "scratch behind your ear",
+  "good girl luna",
+  "good girl",
+  "good kitty",
+  "you're a good girl",
+  "who's a good girl",
+  "cuddle time",
+  "snuggle",
+]
+
+# ==========================================================================
+# Training & discipline
+# ==========================================================================
+
+[[nodes]]
+topic = "training_command"
+concept = "PetCompanion"
+category = "pet_chat_nl"
+priority = 16
+[[nodes.rules]]
+any = [
+  "no luna",
+  "luna no",
+  "luna. no",
+  "luna stop",
+  "off the counter",
+  "off the table",
+  "stop knocking things",
+  "drop it luna",
+  "leave it",
+]
+[[nodes.rules]]
+all = ["luna", "off"]
+[[nodes.rules]]
+all = ["luna", "stop"]
+
+# ==========================================================================
+# Triggers
+# ==========================================================================
+
+[[nodes]]
+topic = "trigger_warning"
+concept = "PetCompanion"
+category = "pet_chat_nl"
+priority = 16
+[[nodes.rules]]
+any = [
+  "vacuum is",
+  "the vacuum",
+  "vacuum time",
+  "vacuum is about to",
+  "the vacuum is about",
+  "roomba",
+  "the roomba",
+  "robot vacuum",
+  "we have to go to the vet",
+  "going to the vet",
+  "to the vet",
+  "the vet",
+  "vet visit",
+  "vet appointment",
+  "the carrier",
+  "carrier time",
+  "thunder",
+  "fireworks tonight",
+  "someone's at the door",
+  "what was that",
+  "did you hear that",
+  "doorbell",
+  "bath time",
+  "bath",
+  "give you a bath",
+]
+
+# ==========================================================================
+# Separation & reunion
+# ==========================================================================
+
+[[nodes]]
+topic = "separation_announcement"
+concept = "PetCompanion"
+category = "pet_chat_nl"
+priority = 16
+[[nodes.rules]]
+any = [
+  "i'll be back",
+  "be back in",
+  "going to work",
+  "heading out",
+  "have to leave",
+  "be right back",
+]
+[[nodes.rules]]
+all = ["luna", "see you later"]
+
+[[nodes]]
+topic = "reunion_warm"
+concept = "PetCompanion"
+category = "pet_chat_nl"
+priority = 16
+[[nodes.rules]]
+any = [
+  "i'm home",
+  "i'm back luna",
+  "sorry i'm late",
+  "sorry i'm so late",
+  "missed you today",
+  "did you miss me",
+  "miss me luna",
+  "i missed you",
+  "back now",
+  "hello again",
+  "i am home",
+  "i am back",
+  "home!",
+  "i'm back",
+  "hi i'm back",
+  "hey i'm back",
+  "just got home",
+  "just got back",
+  "finally home",
+]
+
+# ==========================================================================
+# Emotional support — owner seeking comfort from pet
+# ==========================================================================
+
+[[nodes]]
+topic = "emotional_support"
+concept = "PetCompanion"
+category = "pet_chat_nl"
+priority = 16
+[[nodes.rules]]
+any = [
+  "rough day",
+  "tough day",
+  "bad day",
+  "bad day at school",
+  "terrible day at school",
+  "school was awful",
+  "homework broke",
+  "failed a test",
+  "nobody gets me",
+  "miss my friends",
+  "nobody checked on me",
+  "feel lonely",
+  "so lonely",
+  "i'm alone",
+  "im alone",
+  "feeling anxious today",
+  "feeling sad",
+  "not feeling great",
+  "had a long day",
+  "i need you",
+  "had a hard one",
+  "long week",
+  "i'm stressed",
+  "i'm tired",
+  "feeling down",
+  "everything sucks",
+  "i feel sick",
+  "i can't sleep",
+  "cannot sleep",
+  "i'm upset",
+  # Distress keywords (mirror the basal-ganglia distress lexicon) so natural
+  # phrasings route to comfort instead of falling back to the nearest topic.
+  "anxious",
+  "so sad",
+  "feel sad",
+  "feeling sad",
+  "lonely",
+  "so alone",
+  "feel alone",
+  "feeling alone",
+  "and alone",
+  "overwhelm",
+  "can't cope",
+  "cannot cope",
+  "worried",
+  "feel lost",
+  "feeling lost",
+  "exhausted",
+  "depressed",
+  "crying",
+  "i'm scared",
+  "im scared",
+  "miss you so much",
+  "so tired",
+]
+
+# ==========================================================================
+# Gratitude after comfort — owner thanks Luna for listening / helping
+# ==========================================================================
+
+[[nodes]]
+topic = "gratitude_comfort"
+concept = "PetCompanion"
+category = "pet_chat_nl"
+priority = 17
+[[nodes.rules]]
+any = [
+  "thank you for listening",
+  "thanks for listening",
+  "thank you for being here",
+  "thanks for being here",
+  "thank you for helping",
+  "thanks for helping",
+  "you helped me",
+  "that helped",
+  "helped me feel",
+  "feel better now",
+  "feeling better",
+  "got my mind off",
+  "mind off things",
+  "helped get my mind",
+  "you listened",
+  "thanks for talking",
+  "thank you for talking",
+  "that really helped",
+  "you made me feel",
+  "feel a little better",
+  "thanks for grounding",
+  "thank you for caring",
+  "keeping me company",
+  "helped me unwind",
+  "talking me down",
+  "thanks Luna you listened",
+  "thanks for staying",
+  "feel less alone",
+  "helped me feel less alone",
+  "you really helped",
+  "made me smile",
+]
+
+# ==========================================================================
+# Grounding & cozy distraction (non-therapeutic comfort modules)
+# ==========================================================================
+
+[[nodes]]
+topic = "grounding_support"
+concept = "PetCompanion"
+category = "pet_chat_nl"
+priority = 16
+[[nodes.rules]]
+any = [
+  "help me breathe",
+  "help me relax",
+  "need to calm down",
+  "heart won't stop racing",
+  "heart wont stop racing",
+  "panic attack",
+  "can't calm down",
+  "cannot calm down",
+  "ground me",
+  "feel overwhelmed",
+  "racing thoughts",
+  "heart racing",
+  "need to calm",
+  "help me relax",
+  "can't stop thinking",
+  "cannot stop thinking",
+]
+
+[[nodes]]
+topic = "cozy_distraction"
+concept = "PetCompanion"
+category = "pet_chat_nl"
+priority = 16
+[[nodes.rules]]
+any = [
+  "distract me",
+  "cheer me up",
+  "cheer me up again",
+  "cheer me up more",
+  "cheer me again",
+  "make me smile again",
+  "get my mind off",
+  "something cozy",
+  "tell me something cozy",
+  "tell me something nice",
+  "something soft",
+  "happy thought",
+  "need a distraction",
+  "something gentle",
+  "cozy thought",
+  "tell me something gentle",
+]
+
+[[nodes]]
+topic = "storytelling"
+concept = "PetCompanion"
+category = "pet_chat_nl"
+priority = 16
+[[nodes.rules]]
+any = [
+  "tell me a story",
+  "tell a story",
+  "story time",
+  "another story",
+  "one more story",
+  "tell me another story",
+  "tell me another tale",
+  "story about spain",
+  "spanish story",
+  "story from spain",
+  "story from catalonia",
+  "what happened next",
+]
+
+# ==========================================================================
+# Curiosity & sharing
+# ==========================================================================
+
+[[nodes]]
+topic = "curiosity_share"
+concept = "PetCompanion"
+category = "pet_chat_nl"
+priority = 16
+[[nodes.rules]]
+any = [
+  "look what came",
+  "look what i got",
+  "look at this luna",
+  "did you see that",
+  "what are you looking at",
+  "what do you see",
+]
+
+# ==========================================================================
+# Bedtime
+# ==========================================================================
+
+[[nodes]]
+topic = "bedtime_routine"
+concept = "PetCompanion"
+category = "pet_chat_nl"
+priority = 16
+[[nodes.rules]]
+any = [
+  "time for bed",
+  "bedtime luna",
+  "let's sleep",
+  "go to sleep",
+  "sleepy time",
+  "good night luna",
+  "good night sweetie",
+  "nap time",
+  "shh sleep",
+]
+
+# ==========================================================================
+# Reassurance after distress
+# ==========================================================================
+
+[[nodes]]
+topic = "reassurance_seeking"
+concept = "PetCompanion"
+category = "pet_chat_nl"
+priority = 16
+[[nodes.rules]]
+any = [
+  "you're okay luna",
+  "it's okay luna",
+  "you're safe now",
+  "the loud thing is gone",
+  "come out sweetie",
+  "you can come out",
+  "shhh you're okay",
+]
+
+# ==========================================================================
+# Simple acknowledgment — brief reactions and casual observations
+# ==========================================================================
+
+[[nodes]]
+topic = "simple_acknowledgment"
+concept = "PetCompanion"
+category = "pet_chat_nl"
+priority = 15
+[[nodes.rules]]
+any = [
+  "you ate that way too fast",
+  "you really wanted that",
+  "i'm just going",
+  "be right there",
+  "in a minute luna",
+  "one second",
+  "thanks luna",
+  "good talk",
+  "you're so silly",
+  "ok luna",
+  "okay then",
+  "fair enough",
+]
+[[nodes.rules]]
+all = ["luna", "ok"]
+[[nodes.rules]]
+all = ["luna", "alright"]
+
+# ==========================================================================
+# Open-ended / out-of-domain — questions Luna cannot answer as a cat
+# Routes to a confused-but-charming persona rather than tool intercept.
+# ==========================================================================
+
+# Human-knowledge / trivia questions a cat cannot answer — route to the
+# in-character "off_topic_deflection" sub-lattice (charming non-answers).
+# Higher priority than open_ended_chat so these specific phrases win the match.
+[[nodes]]
+topic = "off_topic_deflection"
+concept = "PetCompanion"
+category = "pet_chat_nl"
+priority = 15
+[[nodes.rules]]
+any = [
+  "explain",
+  "define",
+  "how does",
+  "how do i",
+  "write me",
+  "write a",
+  "code",
+  "debug",
+  "solve",
+  "calculate",
+  "what time",
+  "who is",
+  "who was",
+  "who won",
+  "when did",
+  "where is",
+  "why does",
+  "can you help",
+  "help me with",
+  "how old",
+  "how many",
+  "plus",
+  "minus",
+  "times",
+  "divided by",
+  "2 plus 2",
+  "two plus two",
+  "borrow checker",
+  "quantum",
+  "physics",
+  "president",
+  "capital of",
+  "homework",
+  "python script",
+  "internet work",
+  "taxes",
+  "interest rate",
+  "restaurant",
+  "meaning of life",
+  "world peace",
+  # Human-money / abstract complaints Luna shrugs off as not-food, not-toy
+  "expensive",
+  "you cost",
+  "so much money",
+  "vet bill",
+  "you're annoying",
+  "youre annoying",
+  "you're a menace",
+  "you smell",
+]
+
+# Open-ended chitchat ABOUT Luna / the relationship (not human trivia).
+[[nodes]]
+topic = "open_ended_chat"
+concept = "PetCompanion"
+category = "pet_chat_nl"
+priority = 14
+[[nodes.rules]]
+any = [
+  "talk to me",
+  "say something",
+  "tell me about",
+  "tell me a",
+  "tell me something",
+  "what is your",
+  "what's your",
+  "what are you",
+  "what do you",
+  "do you ever",
+  "do you remember",
+  "do you love",
+  "do you like",
+  "do you want to talk",
+  "what do you think about",
+  "i'm bored",
+  "im bored",
+  "keep me company",
+  "what should we",
+  "what's on your mind",
+  "favorite color",
+  "favorite thing",
+  "are you happy",
+  "are you a",
+  "say hi",
+  "i missed you",
+  "i don't know what to say",
+  "i want to tell you",
+]
+
+# ==========================================================================
+# Weather commentary
+# ==========================================================================
+
+[[nodes]]
+topic = "weather_commentary"
+concept = "PetCompanion"
+category = "pet_chat_nl"
+priority = 16
+[[nodes.rules]]
+any = [
+  "raining",
+  "rain",
+  "thunder",
+  "lightning",
+  "sunny",
+  "sun",
+  "snowing",
+  "snow",
+  "it's cold",
+  "it's hot",
+  "windy",
+  "storm",
+  "weather",
+  "cloudy",
+  "it's raining",
+  "it's snowing",
+  "it's so sunny",
+  "sunny today",
+  "thunder!",
+  "thunderstorm",
+]
+
+# ==========================================================================
+# Visitor / doorbell alerts
+# ==========================================================================
+
+[[nodes]]
+topic = "visitor_alert"
+concept = "PetCompanion"
+category = "pet_chat_nl"
+priority = 16
+[[nodes.rules]]
+any = [
+  "someone is at the door",
+  "doorbell",
+  "the doorbell",
+  "door rang",
+  "someone's here",
+  "visitor",
+  "friend is coming",
+  "friend coming over",
+  "company is coming",
+  "guests",
+  "guest coming",
+  "package delivery",
+  "delivery person",
+  "who's at the door",
+  "knock knock",
+  "someone knocked",
+]
+
+# ==========================================================================
+# Household activities
+# ==========================================================================
+
+[[nodes]]
+topic = "household_activity"
+concept = "PetCompanion"
+category = "pet_chat_nl"
+priority = 15
+[[nodes.rules]]
+any = [
+  "cooking",
+  "I'm cooking",
+  "making dinner",
+  "doing laundry",
+  "laundry",
+  "litter box",
+  "clean your",
+  "working from home",
+  "work from home",
+  "watching TV",
+  "watching tv",
+  "on the phone",
+  "phone call",
+  "reading a book",
+  "reading",
+  "making the bed",
+  "bed making",
+  "music",
+  "music is playing",
+  "I'm busy",
+  "doing dishes",
+  "dishes",
+  "cleaning",
+  "mopping",
+  "sweeping",
+  "yoga",
+  "exercising",
+  "I'm working",
+]
+
+# ==========================================================================
+# Grooming
+# ==========================================================================
+
+[[nodes]]
+topic = "grooming_offer"
+concept = "PetCompanion"
+category = "pet_chat_nl"
+priority = 16
+[[nodes.rules]]
+any = [
+  "brushies",
+  "brush you",
+  "brush your",
+  "trim your nails",
+  "nail trim",
+  "claw trim",
+  "grooming",
+  "groom",
+  "comb",
+  "let me brush",
+  "brushing time",
+]
+
+# ==========================================================================
+# Compliments
+# ==========================================================================
+
+[[nodes]]
+topic = "compliment"
+concept = "PetCompanion"
+category = "pet_chat_nl"
+priority = 16
+[[nodes.rules]]
+any = [
+  "you're so cute",
+  "so cute",
+  "pretty girl",
+  "beautiful",
+  "gorgeous",
+  "so soft",
+  "so fluffy",
+  "handsome",
+  "adorable",
+  "precious",
+  "you're perfect",
+  "you're beautiful",
+  "cutest cat",
+  "prettiest cat",
+  "why are you so soft",
+  "why are you so cute",
+  "look at you",
+  # Affectionate teasing about appearance — Luna reframes with dignified self-regard
+  "you're fat",
+  "youre fat",
+  "so fat",
+  "how fat",
+  "chonky",
+  "chunky",
+  "chubby",
+  "big girl",
+  "you're round",
+  "little chonk",
+]
+
+# ==========================================================================
+# Concept keywords — broad classification for PetCompanion routing
+# These give the runtime classifier a fast path: any message containing
+# these signals leans toward routing to the pet brain even when no
+# specific topic rule matches.
+# ==========================================================================
+
+[concept_keywords]
+PetCompanion = [
+  # Pet name and nicknames (most specific)
+  "luna",
+  "lulu",
+
+  # Owner-to-pet endearments
+  "pretty girl",
+  "good girl",
+  "good kitty",
+  "sweet girl",
+  "sweetie",
+  "kitty",
+
+  # Cat species vocabulary
+  "meow",
+  "mrrp",
+  "mrrowr",
+  "purr",
+  "purring",
+  "tail flick",
+  "slow blink",
+  "kneading",
+  "headbutt",
+  "head bump",
+  "kek kek",
+  "chirping",
+
+  # Pet-context interaction phrases
+  "want to play",
+  "want a treat",
+  "feather wand",
+  "laser pointer",
+  "the carrier",
+  "the vacuum",
+  "litter box",
+  "cat tree",
+  "cat tower",
+  "windowsill",
+
+  # Universal pet vocabulary
+  "feed the cat",
+  "pet the cat",
+  "the cat is",
+  "my cat",
+
+  # Household and environment signals
+  "cooking",
+  "laundry",
+  "sunny",
+  "raining",
+  "doorbell",
+  "brushies",
+  "nails",
+  "nap",
+  "sleeping",
+  "cute",
+  "soft",
+  "fluffy",
+]
+
+# ==========================================================================
+# action_target → concept mapping for training-time routing
+# Merged into the main file's [action_target_concepts] section.
+# Add this so JSONL examples with action_target = "pet_chat" route to the
+# PetCompanion concept during the training pipeline.
+# ==========================================================================
+
+[action_target_concepts]
+pet_chat = "PetCompanion"
+pet_create = "PetCompanion"
+pet_questionnaire = "PetCompanion"
+pet_traits_set = "PetCompanion"

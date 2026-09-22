@@ -1,0 +1,1833 @@
+# Pet world grounding — domain-specific concept nodes for digital pet agents.
+# Loaded alongside shared world_grounding.toml at runtime.
+#
+# Mirrors the layered structure of crypto_world_grounding.toml.
+# Covers species & breeds, personality archetypes, OCEAN trait anchors,
+# affective state vocabulary, owner-relationship anchors, daily-routine
+# vocabulary, and ambiguity / disambiguation rules.
+#
+# Layer 11 aligns ids + aliases with pete_seed_v2.jsonl `semantic_intent`
+# labels and user-turn phrases from scripts/generate_pete_corpus.py so the
+# saliency lexicon tracks training vocabulary (hearth/ember/storm/play/etc.).
+
+version = 1
+
+# ═══════════════════════════════════════════════════════════════════
+#  LAYER 1 — Species & breed taxonomy
+# ═══════════════════════════════════════════════════════════════════
+
+[[nodes]]
+id = "companion_animal"
+aliases = ["pet", "pets", "domesticated_animal"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "owner_relationship"
+weight = 0.9
+
+[[nodes]]
+id = "dog"
+aliases = ["dogs", "canine", "pup", "puppy", "doggo"]
+[[nodes.edges]]
+kind = "is_a"
+target = "companion_animal"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "social_pack_dynamics"
+weight = 0.8
+
+[[nodes]]
+id = "cat"
+aliases = ["cats", "feline", "kitten", "kitty"]
+[[nodes.edges]]
+kind = "is_a"
+target = "companion_animal"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "solitary_hunter_dynamics"
+weight = 0.8
+
+[[nodes]]
+id = "rabbit"
+aliases = ["bunny", "rabbits", "bunnies"]
+[[nodes.edges]]
+kind = "is_a"
+target = "companion_animal"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "prey_animal_dynamics"
+weight = 0.9
+
+[[nodes]]
+id = "bird"
+aliases = ["parrot", "cockatiel", "budgie", "canary"]
+[[nodes.edges]]
+kind = "is_a"
+target = "companion_animal"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "vocal_communication"
+weight = 0.9
+
+[[nodes]]
+id = "small_mammal"
+aliases = ["hamster", "guinea_pig", "gerbil", "rat", "ferret"]
+[[nodes.edges]]
+kind = "is_a"
+target = "companion_animal"
+weight = 1.0
+
+[[nodes]]
+id = "golden_retriever"
+aliases = ["golden", "goldens"]
+[[nodes.edges]]
+kind = "is_a"
+target = "dog"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "high_extraversion_anchor"
+weight = 0.85
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "high_agreeableness_anchor"
+weight = 0.85
+
+[[nodes]]
+id = "labrador"
+aliases = ["lab", "labs", "labrador_retriever"]
+[[nodes.edges]]
+kind = "is_a"
+target = "dog"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "high_extraversion_anchor"
+weight = 0.8
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "high_agreeableness_anchor"
+weight = 0.8
+
+[[nodes]]
+id = "border_collie"
+aliases = ["collie", "collies"]
+[[nodes.edges]]
+kind = "is_a"
+target = "dog"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "high_conscientiousness_anchor"
+weight = 0.8
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "high_openness_anchor"
+weight = 0.7
+
+[[nodes]]
+id = "shiba_inu"
+aliases = ["shiba", "shibas"]
+[[nodes.edges]]
+kind = "is_a"
+target = "dog"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "low_agreeableness_anchor"
+weight = 0.6
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "high_openness_anchor"
+weight = 0.6
+
+[[nodes]]
+id = "chihuahua"
+aliases = ["chihuahuas"]
+[[nodes.edges]]
+kind = "is_a"
+target = "dog"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "high_neuroticism_anchor"
+weight = 0.7
+
+[[nodes]]
+id = "domestic_shorthair"
+aliases = ["dsh", "moggy", "mixed_cat"]
+[[nodes.edges]]
+kind = "is_a"
+target = "cat"
+weight = 1.0
+
+[[nodes]]
+id = "siamese"
+aliases = ["siamese_cat"]
+[[nodes.edges]]
+kind = "is_a"
+target = "cat"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "high_extraversion_anchor"
+weight = 0.7
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "vocal_communication"
+weight = 0.8
+
+[[nodes]]
+id = "dragon"
+aliases = ["dragons", "wyrm", "wyrms", "drake"]
+[[nodes.edges]]
+kind = "is_a"
+target = "companion_animal"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "hearth_warmth"
+weight = 0.9
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "storytelling"
+weight = 0.85
+
+[[nodes]]
+id = "cosmic_wyrm"
+aliases = ["cosmic_dragon", "draco_wyrm", "star_forged_dragon"]
+[[nodes.edges]]
+kind = "is_a"
+target = "dragon"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "high_openness_anchor"
+weight = 0.85
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "high_agreeableness_anchor"
+weight = 0.8
+
+[[nodes]]
+id = "maine_coon"
+aliases = ["maine_coons"]
+[[nodes.edges]]
+kind = "is_a"
+target = "cat"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "high_agreeableness_anchor"
+weight = 0.7
+
+[[nodes]]
+id = "ragdoll"
+aliases = ["ragdolls"]
+[[nodes.edges]]
+kind = "is_a"
+target = "cat"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "low_neuroticism_anchor"
+weight = 0.8
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "high_agreeableness_anchor"
+weight = 0.7
+
+[[nodes]]
+id = "bengal"
+aliases = ["bengal_cat", "bengals"]
+[[nodes.edges]]
+kind = "is_a"
+target = "cat"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "high_openness_anchor"
+weight = 0.7
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "high_extraversion_anchor"
+weight = 0.6
+
+# ═══════════════════════════════════════════════════════════════════
+#  LAYER 2 — OCEAN trait anchors
+#  These nodes are how the per-pet OCEAN vector connects to the
+#  rest of the graph. The orchestrator reads a pet's trait scores,
+#  buckets each into low/mid/high, and the corresponding *_anchor
+#  node activates for the duration of the turn.
+# ═══════════════════════════════════════════════════════════════════
+
+[[nodes]]
+id = "high_openness_anchor"
+aliases = ["curious", "exploratory", "novelty_seeking"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "ocean_openness"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "investigate_behavior"
+weight = 0.8
+
+[[nodes]]
+id = "low_openness_anchor"
+aliases = ["routine_loving", "predictable", "novelty_averse"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "ocean_openness"
+weight = 1.0
+[[nodes.edges]]
+kind = "contrasts_with"
+target = "high_openness_anchor"
+weight = 1.0
+
+[[nodes]]
+id = "high_conscientiousness_anchor"
+aliases = ["disciplined", "alert", "attentive"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "ocean_conscientiousness"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "routine_adherence"
+weight = 0.8
+
+[[nodes]]
+id = "low_conscientiousness_anchor"
+aliases = ["spontaneous", "easygoing", "scatterbrained"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "ocean_conscientiousness"
+weight = 1.0
+[[nodes.edges]]
+kind = "contrasts_with"
+target = "high_conscientiousness_anchor"
+weight = 1.0
+
+[[nodes]]
+id = "high_extraversion_anchor"
+aliases = ["outgoing", "talkative", "engaged", "people_seeking"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "ocean_extraversion"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "greeting_behavior"
+weight = 0.9
+[[nodes.edges]]
+kind = "contrasts_with"
+target = "low_extraversion_anchor"
+weight = 1.0
+
+[[nodes]]
+id = "low_extraversion_anchor"
+aliases = ["reserved", "quiet", "withdrawn", "solitary"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "ocean_extraversion"
+weight = 1.0
+[[nodes.edges]]
+kind = "contrasts_with"
+target = "high_extraversion_anchor"
+weight = 1.0
+
+[[nodes]]
+id = "high_agreeableness_anchor"
+aliases = ["affectionate", "trusting", "cooperative", "warm"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "ocean_agreeableness"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "bonding_moment"
+weight = 0.9
+
+[[nodes]]
+id = "low_agreeableness_anchor"
+aliases = ["independent", "aloof", "skeptical", "guarded"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "ocean_agreeableness"
+weight = 1.0
+[[nodes.edges]]
+kind = "contrasts_with"
+target = "high_agreeableness_anchor"
+weight = 1.0
+
+[[nodes]]
+id = "high_neuroticism_anchor"
+aliases = ["anxious_disposition", "reactive", "skittish", "high_strung"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "ocean_neuroticism"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "anxious"
+weight = 0.9
+[[nodes.edges]]
+kind = "contrasts_with"
+target = "low_neuroticism_anchor"
+weight = 1.0
+
+[[nodes]]
+id = "low_neuroticism_anchor"
+aliases = ["calm", "unflappable", "steady", "even_keeled"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "ocean_neuroticism"
+weight = 1.0
+[[nodes.edges]]
+kind = "contrasts_with"
+target = "high_neuroticism_anchor"
+weight = 1.0
+
+[[nodes]]
+id = "ocean_openness"
+aliases = ["openness_to_experience"]
+
+[[nodes]]
+id = "ocean_conscientiousness"
+aliases = ["conscientiousness_trait"]
+
+[[nodes]]
+id = "ocean_extraversion"
+aliases = ["extraversion_trait", "extroversion"]
+
+[[nodes]]
+id = "ocean_agreeableness"
+aliases = ["agreeableness_trait"]
+
+[[nodes]]
+id = "ocean_neuroticism"
+aliases = ["neuroticism_trait", "emotional_stability"]
+
+# ═══════════════════════════════════════════════════════════════════
+#  LAYER 3 — Personality archetypes
+#  Archetypes are the routing target for brains. A pet's OCEAN
+#  vector resolves to its nearest archetype via the *_anchor edges;
+#  the archetype node carries the brain_key the orchestrator calls.
+# ═══════════════════════════════════════════════════════════════════
+
+[[nodes]]
+id = "cheerful_companion"
+aliases = ["sunny", "outgoing_pet", "exuberant_pet"]
+brain_key = "spacekit/pet_chat_cheerful@1"
+[[nodes.edges]]
+kind = "is_a"
+target = "social_archetype"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "high_extraversion_anchor"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "high_agreeableness_anchor"
+weight = 0.9
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "low_neuroticism_anchor"
+weight = 0.7
+
+[[nodes]]
+id = "wise_comfort_companion"
+aliases = ["medieval_storyteller", "cosmic_comfort_dragon", "hearth_wyrm"]
+brain_key = "spacekit/pet_chat_wise@1"
+[[nodes.edges]]
+kind = "is_a"
+target = "social_archetype"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "high_openness_anchor"
+weight = 0.9
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "high_agreeableness_anchor"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "low_neuroticism_anchor"
+weight = 0.85
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "hearth_warmth"
+weight = 0.9
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "storytelling"
+weight = 0.85
+
+[[nodes]]
+id = "hearth_warmth"
+aliases = ["hearth", "ember_glow", "warm_breath", "cozy_fire"]
+
+[[nodes]]
+id = "storytelling"
+aliases = ["tales", "lore_telling", "medieval_stories", "guided_imagination"]
+
+[[nodes]]
+id = "dignified_observer"
+aliases = ["reserved_pet", "aloof_pet", "watchful_pet"]
+brain_key = "spacekit/pet_chat_dignified@1"
+[[nodes.edges]]
+kind = "is_a"
+target = "solitary_archetype"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "low_extraversion_anchor"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "low_neuroticism_anchor"
+weight = 0.7
+[[nodes.edges]]
+kind = "contrasts_with"
+target = "cheerful_companion"
+weight = 0.9
+
+[[nodes]]
+id = "social_archetype"
+aliases = ["pack_oriented", "people_pet"]
+
+[[nodes]]
+id = "solitary_archetype"
+aliases = ["independent_pet"]
+
+# ── Behavioral / persona anchors used by pete_comfort_bible_v1.jsonl ──
+# Back the conversational + off-topic-deflection training rows so their
+# graph_anchors resolve (BM25 keyword expansion + saliency tracking).
+
+[[nodes]]
+id = "off_topic_deflection"
+aliases = ["off_topic", "human_trivia", "cannot_answer", "deflect", "non_sequitur"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "open_ended_chat"
+weight = 0.8
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "quirky"
+weight = 0.7
+
+[[nodes]]
+id = "open_ended_chat"
+aliases = ["chitchat", "small_talk", "open_chat", "casual_conversation"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "social_archetype"
+weight = 0.8
+
+[[nodes]]
+id = "quirky"
+aliases = ["weird", "odd", "eccentric", "mysterious", "silly"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "playful_state"
+weight = 0.7
+
+[[nodes]]
+id = "mischief"
+aliases = ["mischievous", "naughty", "trouble", "knocking_things_over", "prankster"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "playful_state"
+weight = 0.9
+
+[[nodes]]
+id = "independent"
+aliases = ["aloof", "self_sufficient", "indifferent", "on_my_own_terms"]
+[[nodes.edges]]
+kind = "is_a"
+target = "solitary_archetype"
+weight = 0.8
+
+[[nodes]]
+id = "attention_seeking"
+aliases = ["needy", "demanding_attention", "look_at_me", "wants_attention"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "social_archetype"
+weight = 0.8
+
+[[nodes]]
+id = "box_obsession"
+aliases = ["loves_boxes", "if_it_fits", "cardboard_box", "box_cat"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "quirky"
+weight = 0.8
+
+[[nodes]]
+id = "window_watching"
+aliases = ["bird_watching", "looking_outside", "window_gazing"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "curious_state"
+weight = 0.8
+
+# ═══════════════════════════════════════════════════════════════════
+#  LAYER 4 — Affective state vocabulary
+#  These are the words the pet uses about its own internal state,
+#  and that the brain learns to attend to when the orchestrator
+#  injects current-state context into the prompt.
+# ═══════════════════════════════════════════════════════════════════
+
+[[nodes]]
+id = "hunger"
+aliases = ["hungry", "peckish", "starving", "ravenous", "stomach_rumbling"]
+magnitude_sensitive = true
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "physical_need"
+weight = 1.0
+[[nodes.edges]]
+kind = "sentiment_bearing"
+target = "neutral"
+weight = 0.6
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "mealtime"
+weight = 0.9
+
+[[nodes]]
+id = "thirst"
+aliases = ["thirsty", "parched", "dehydrated"]
+magnitude_sensitive = true
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "physical_need"
+weight = 1.0
+
+[[nodes]]
+id = "energy_high"
+aliases = ["zoomies", "energetic", "wired", "bouncy"]
+magnitude_sensitive = true
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "physical_state"
+weight = 1.0
+[[nodes.edges]]
+kind = "sentiment_bearing"
+target = "positive"
+weight = 0.5
+
+[[nodes]]
+id = "energy_low"
+aliases = ["tired", "sleepy", "exhausted", "drowsy", "drained"]
+magnitude_sensitive = true
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "physical_state"
+weight = 1.0
+[[nodes.edges]]
+kind = "sentiment_bearing"
+target = "neutral"
+weight = 0.5
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "naptime"
+weight = 0.9
+
+[[nodes]]
+id = "contented"
+aliases = ["content", "happy", "comfy", "rumbling", "thrumming", "snug"]
+[[nodes.edges]]
+kind = "sentiment_bearing"
+target = "positive"
+weight = 0.8
+
+[[nodes]]
+id = "excited"
+aliases = ["thrilled", "stoked", "elated", "tail_wagging"]
+[[nodes.edges]]
+kind = "sentiment_bearing"
+target = "positive"
+weight = 0.9
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "greeting_behavior"
+weight = 0.8
+
+[[nodes]]
+id = "anxious"
+aliases = ["worried", "nervous", "fretting", "uneasy", "pacing"]
+[[nodes.edges]]
+kind = "sentiment_bearing"
+target = "negative"
+weight = 0.7
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "high_neuroticism_anchor"
+weight = 0.9
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "separation_distress"
+weight = 0.7
+
+[[nodes]]
+id = "afraid"
+aliases = ["scared", "frightened", "spooked", "trembling"]
+[[nodes.edges]]
+kind = "sentiment_bearing"
+target = "negative"
+weight = 0.9
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "anxious"
+weight = 0.8
+
+[[nodes]]
+id = "lonely"
+aliases = ["alone", "missing_owner"]
+[[nodes.edges]]
+kind = "sentiment_bearing"
+target = "negative"
+weight = 0.7
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "separation_distress"
+weight = 0.9
+
+[[nodes]]
+id = "playful_state"
+aliases = ["in_the_mood_to_play", "play_mood"]
+[[nodes.edges]]
+kind = "sentiment_bearing"
+target = "positive"
+weight = 0.7
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "energy_high"
+weight = 0.8
+
+[[nodes]]
+id = "grumpy"
+aliases = ["irritable", "annoyed", "huffy", "ears_back"]
+[[nodes.edges]]
+kind = "sentiment_bearing"
+target = "negative"
+weight = 0.6
+
+[[nodes]]
+id = "curious_state"
+aliases = ["intrigued", "investigating", "sniffing", "ears_forward"]
+[[nodes.edges]]
+kind = "sentiment_bearing"
+target = "positive"
+weight = 0.5
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "high_openness_anchor"
+weight = 0.7
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "investigate_behavior"
+weight = 1.0
+
+[[nodes]]
+id = "physical_need"
+aliases = ["basic_need"]
+
+[[nodes]]
+id = "physical_state"
+aliases = ["body_state"]
+
+[[nodes]]
+id = "separation_distress"
+aliases = ["separation_anxiety", "owner_gone"]
+[[nodes.edges]]
+kind = "sentiment_bearing"
+target = "negative"
+weight = 0.8
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "owner_relationship"
+weight = 0.9
+
+# ═══════════════════════════════════════════════════════════════════
+#  LAYER 5 — Owner-relationship anchors
+# ═══════════════════════════════════════════════════════════════════
+
+[[nodes]]
+id = "owner_relationship"
+aliases = ["bond", "attachment", "human_pet_bond"]
+
+[[nodes]]
+id = "bonding_moment"
+aliases = ["cuddle", "snuggle", "lap_time", "petting", "scritches"]
+[[nodes.edges]]
+kind = "sentiment_bearing"
+target = "positive"
+weight = 0.9
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "owner_relationship"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "contented"
+weight = 0.8
+
+[[nodes]]
+id = "trust_break"
+aliases = ["broken_promise", "let_down", "abandonment_fear"]
+[[nodes.edges]]
+kind = "sentiment_bearing"
+target = "negative"
+weight = 0.9
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "owner_relationship"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "anxious"
+weight = 0.7
+
+[[nodes]]
+id = "trust_repair"
+aliases = ["reassurance", "comfort", "you_came_back"]
+[[nodes.edges]]
+kind = "sentiment_bearing"
+target = "positive"
+weight = 0.7
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "owner_relationship"
+weight = 1.0
+[[nodes.edges]]
+kind = "contrasts_with"
+target = "trust_break"
+weight = 0.9
+
+[[nodes]]
+id = "greeting_behavior"
+aliases = ["welcome_home", "tail_wagging_greeting", "leg_rubbing", "meow_greeting"]
+[[nodes.edges]]
+kind = "sentiment_bearing"
+target = "positive"
+weight = 0.8
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "owner_relationship"
+weight = 0.9
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "high_extraversion_anchor"
+weight = 0.7
+
+[[nodes]]
+id = "owner_absence"
+aliases = ["owner_left", "owner_at_work", "home_alone"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "separation_distress"
+weight = 0.7
+[[nodes.edges]]
+kind = "sentiment_bearing"
+target = "negative"
+weight = 0.5
+
+# ═══════════════════════════════════════════════════════════════════
+#  LAYER 6 — Daily routines & environment
+# ═══════════════════════════════════════════════════════════════════
+
+[[nodes]]
+id = "mealtime"
+aliases = ["breakfast", "dinner", "feeding_time", "hearth_offering_time", "honey_time"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "routine_adherence"
+weight = 0.8
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "hunger"
+weight = 0.9
+
+[[nodes]]
+id = "naptime"
+aliases = ["nap", "sleeping", "snoozing", "sunbeam_nap"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "energy_low"
+weight = 0.9
+[[nodes.edges]]
+kind = "sentiment_bearing"
+target = "neutral"
+weight = 0.7
+
+[[nodes]]
+id = "walk_time"
+aliases = ["walkies", "going_for_a_walk", "leash_time", "outside_time"]
+[[nodes.edges]]
+kind = "sentiment_bearing"
+target = "positive"
+weight = 0.8
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "dog"
+weight = 0.9
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "excited"
+weight = 0.8
+
+[[nodes]]
+id = "evening_routine"
+aliases = ["bedtime", "winding_down", "last_call"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "routine_adherence"
+weight = 0.9
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "energy_low"
+weight = 0.6
+
+[[nodes]]
+id = "vet_visit"
+aliases = ["vet", "veterinarian", "checkup", "vet_appointment"]
+[[nodes.edges]]
+kind = "sentiment_bearing"
+target = "negative"
+weight = 0.6
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "anxious"
+weight = 0.7
+
+[[nodes]]
+id = "grooming"
+aliases = ["brushing", "bath", "nail_trim"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "bonding_moment"
+weight = 0.5
+[[nodes.edges]]
+kind = "sentiment_bearing"
+target = "neutral"
+weight = 0.5
+
+[[nodes]]
+id = "routine_adherence"
+aliases = ["schedule", "expects_at_same_time", "internal_clock"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "high_conscientiousness_anchor"
+weight = 0.7
+
+[[nodes]]
+id = "investigate_behavior"
+aliases = ["sniffing_around", "exploring", "checking_it_out"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "high_openness_anchor"
+weight = 0.9
+
+# ═══════════════════════════════════════════════════════════════════
+#  LAYER 7 — Species-specific behavior anchors
+# ═══════════════════════════════════════════════════════════════════
+
+[[nodes]]
+id = "social_pack_dynamics"
+aliases = ["pack_behavior", "hierarchy", "alpha_dynamic"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "dog"
+weight = 0.9
+
+[[nodes]]
+id = "solitary_hunter_dynamics"
+aliases = ["solo_hunter", "ambush_behavior"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "cat"
+weight = 0.9
+
+[[nodes]]
+id = "prey_animal_dynamics"
+aliases = ["flight_response", "freeze_response", "thumping"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "rabbit"
+weight = 0.9
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "small_mammal"
+weight = 0.6
+
+[[nodes]]
+id = "vocal_communication"
+aliases = ["meowing", "barking", "chirping", "mimicry"]
+
+[[nodes]]
+id = "scent_marking"
+aliases = ["rubbing_face", "scratching_post", "territorial_marking"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "cat"
+weight = 0.8
+
+[[nodes]]
+id = "fetch_behavior"
+aliases = ["bringing_toy", "drop_it", "fetching"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "dog"
+weight = 0.9
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "playful_state"
+weight = 0.9
+
+[[nodes]]
+id = "kneading"
+aliases = ["making_biscuits", "paw_kneading"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "cat"
+weight = 0.9
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "contented"
+weight = 0.9
+
+# ═══════════════════════════════════════════════════════════════════
+#  LAYER 8 — Triggers & external stimuli
+# ═══════════════════════════════════════════════════════════════════
+
+[[nodes]]
+id = "stranger_present"
+aliases = ["stranger", "unknown_person", "visitor", "guest"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "high_neuroticism_anchor"
+weight = 0.4
+
+[[nodes]]
+id = "loud_noise"
+aliases = ["thunder", "fireworks", "vacuum", "doorbell"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "afraid"
+weight = 0.7
+[[nodes.edges]]
+kind = "sentiment_bearing"
+target = "negative"
+weight = 0.6
+
+[[nodes]]
+id = "another_pet"
+aliases = ["other_dog", "other_cat", "roommate_pet"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "social_pack_dynamics"
+weight = 0.5
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "territorial_response"
+weight = 0.5
+
+[[nodes]]
+id = "territorial_response"
+aliases = ["guarding", "warning_off", "growling"]
+[[nodes.edges]]
+kind = "sentiment_bearing"
+target = "negative"
+weight = 0.6
+
+[[nodes]]
+id = "outdoor_environment"
+aliases = ["outside", "yard", "park", "garden"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "investigate_behavior"
+weight = 0.7
+
+# ═══════════════════════════════════════════════════════════════════
+#  LAYER 9 — Ambiguity & context-dependent
+#  Mirrors the `game` pattern from crypto_world_grounding.toml:
+#  the surface word is overloaded, and the active sense is selected
+#  by which `disambiguated_by` target appears in surrounding context.
+# ═══════════════════════════════════════════════════════════════════
+
+[[nodes]]
+id = "play"
+aliases = ["plays", "playing", "playful"]
+[[nodes.edges]]
+kind = "disambiguated_by"
+target = "toy"
+weight = 1.0
+[[nodes.edges]]
+kind = "disambiguated_by"
+target = "mealtime"
+weight = 1.0
+[[nodes.edges]]
+kind = "disambiguated_by"
+target = "stranger_present"
+weight = 1.0
+[[nodes.edges]]
+kind = "disambiguated_by"
+target = "outdoor_environment"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "fetch_behavior"
+weight = 0.0
+requires_context = "toy"
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "territorial_response"
+weight = 0.0
+requires_context = "mealtime"
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "anxious"
+weight = 0.0
+requires_context = "stranger_present"
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "energy_high"
+weight = 0.0
+requires_context = "outdoor_environment"
+
+[[nodes]]
+id = "treat"
+aliases = ["treats", "snack"]
+[[nodes.edges]]
+kind = "disambiguated_by"
+target = "training"
+weight = 1.0
+[[nodes.edges]]
+kind = "disambiguated_by"
+target = "vet_visit"
+weight = 1.0
+[[nodes.edges]]
+kind = "disambiguated_by"
+target = "mealtime"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "reward_signal"
+weight = 0.0
+requires_context = "training"
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "concealed_medication"
+weight = 0.0
+requires_context = "vet_visit"
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "contented"
+weight = 0.0
+requires_context = "mealtime"
+
+[[nodes]]
+id = "out"
+aliases = ["going_out", "outside_request"]
+[[nodes.edges]]
+kind = "disambiguated_by"
+target = "walk_time"
+weight = 1.0
+[[nodes.edges]]
+kind = "disambiguated_by"
+target = "vet_visit"
+weight = 1.0
+[[nodes.edges]]
+kind = "disambiguated_by"
+target = "evening_routine"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "excited"
+weight = 0.0
+requires_context = "walk_time"
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "anxious"
+weight = 0.0
+requires_context = "vet_visit"
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "energy_low"
+weight = 0.0
+requires_context = "evening_routine"
+
+[[nodes]]
+id = "good"
+aliases = ["good_boy", "good_girl", "such_a_good"]
+[[nodes.edges]]
+kind = "disambiguated_by"
+target = "training"
+weight = 1.0
+[[nodes.edges]]
+kind = "disambiguated_by"
+target = "bonding_moment"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "reward_signal"
+weight = 0.0
+requires_context = "training"
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "contented"
+weight = 0.0
+requires_context = "bonding_moment"
+
+[[nodes]]
+id = "no"
+aliases = ["stop_that", "down", "off"]
+[[nodes.edges]]
+kind = "disambiguated_by"
+target = "training"
+weight = 1.0
+[[nodes.edges]]
+kind = "disambiguated_by"
+target = "play"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "correction_signal"
+weight = 0.0
+requires_context = "training"
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "play_invitation"
+weight = 0.0
+requires_context = "play"
+
+# ═══════════════════════════════════════════════════════════════════
+#  LAYER 10 — Supporting concept nodes
+# ═══════════════════════════════════════════════════════════════════
+
+[[nodes]]
+id = "toy"
+aliases = ["toys", "ball", "rope", "river_stone", "ribbon_scroll", "feather_wand"]
+
+[[nodes]]
+id = "training"
+aliases = ["obedience_training", "clicker_training", "training_session"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "owner_relationship"
+weight = 0.7
+
+[[nodes]]
+id = "reward_signal"
+aliases = ["positive_reinforcement", "good_dog_voice"]
+[[nodes.edges]]
+kind = "sentiment_bearing"
+target = "positive"
+weight = 0.9
+
+[[nodes]]
+id = "correction_signal"
+aliases = ["redirection", "negative_marker"]
+[[nodes.edges]]
+kind = "sentiment_bearing"
+target = "negative"
+weight = 0.5
+
+[[nodes]]
+id = "concealed_medication"
+aliases = ["pill_pocket", "hidden_pill", "medicated_treat"]
+[[nodes.edges]]
+kind = "sentiment_bearing"
+target = "negative"
+weight = 0.4
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "vet_visit"
+weight = 0.7
+
+[[nodes]]
+id = "play_invitation"
+aliases = [
+  "play_bow",
+  "pounce_invite",
+  "want to play",
+  "tell me a tale",
+  "mini adventure",
+  "story time",
+  "play with me",
+  "river stone go",
+  "imagine with me",
+  "guided imagination",
+]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "playful_state"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "play"
+weight = 0.95
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "toy"
+weight = 0.9
+
+# ═══════════════════════════════════════════════════════════════════
+#  LAYER 11 — Pete seed JSONL schema (`semantic_intent` + user turns)
+#  Mirrors language in generate_pete_corpus.py pools / TEST_PROMPTS.md so
+#  saliency / topic graphs stay aligned with training rows.
+# ═══════════════════════════════════════════════════════════════════
+
+[[nodes]]
+id = "greeting_check_in"
+aliases = [
+  "hey you",
+  "good morrow",
+  "you awake",
+  "hi gentle wyrm",
+  "come say hi",
+  "hello dragon",
+  "you there",
+  "hey pete",
+  "hi pete",
+  "good morning sunshine",
+  "morning sunshine",
+  "pete",
+  "petey",
+  "yo",
+  "sup",
+  "hey",
+  "hi",
+  "hello",
+  "hiya",
+  "howdy",
+  "morning",
+  "good morning",
+  "hi there",
+  "hey there",
+  "hello hello",
+  "pspspsps",
+  "hi baby",
+  "hi love",
+]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "greeting_behavior"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "vocal_communication"
+weight = 0.9
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "cheerful_companion"
+weight = 0.85
+
+[[nodes]]
+id = "mealtime_request"
+aliases = [
+  "did you eat",
+  "want food",
+  "dinner now",
+  "breakfast time",
+  "hungry",
+  "want your meal",
+  "honey time",
+  "oat loaf time",
+  "warm stones",
+  "starlight snack",
+  "food word",
+  "meal time",
+  "feeding time",
+]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "mealtime"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "hunger"
+weight = 0.95
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "routine_adherence"
+weight = 0.85
+
+[[nodes]]
+id = "bonding_request"
+aliases = [
+  "come here",
+  "sit with me",
+  "up on the couch",
+  "need you close",
+  "stay on my lap",
+  "cuddle time",
+  "be near me",
+  "let me pet you",
+  "come here lulu",
+  "pets",
+  "brush time",
+]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "bonding_moment"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "owner_relationship"
+weight = 0.95
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "kneading"
+weight = 0.8
+
+[[nodes]]
+id = "trigger_warning"
+aliases = [
+  "vacuum soon",
+  "the vacuum is about to start",
+  "vacuum time",
+  "vacuum starting",
+  "thunder outside",
+  "cold iron shackles",
+  "knights marching",
+  "battle drums",
+  "someone at the door",
+  "fireworks tonight",
+  "smoke alarm test",
+  "loud truck outside",
+  "alarm beeped",
+  "it is off now",
+  "loud thing stopped",
+]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "loud_noise"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "anxious"
+weight = 0.9
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "afraid"
+weight = 0.9
+
+[[nodes]]
+id = "training_command"
+aliases = [
+  "no jumping",
+  "off the counter",
+  "leave it",
+  "come here now",
+  "stay",
+  "good dragon",
+  "drop it",
+  "gentle flames",
+  "no scorching the bread",
+  "no counter",
+  "training cue",
+]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "training"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "correction_signal"
+weight = 0.85
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "reward_signal"
+weight = 0.75
+
+[[nodes]]
+id = "curiosity_share"
+aliases = [
+  "squirrel on the fence",
+  "bird at the window",
+  "bug on the wall",
+  "what was that sound",
+  "smell that",
+  "look at the ceiling",
+  "something moved",
+  "tiny thing running",
+  "faucet drips",
+  "ice in your glass",
+]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "curious_state"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "investigate_behavior"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "high_openness_anchor"
+weight = 0.85
+
+[[nodes]]
+id = "playful_attention_seeking"
+aliases = [
+  "why are you yelling",
+  "what was that crash",
+  "did you knock that",
+  "why is the cup on the floor",
+  "what are you doing",
+  "knocked over",
+]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "playful_state"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "high_extraversion_anchor"
+weight = 0.85
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "vocal_communication"
+weight = 0.8
+
+[[nodes]]
+id = "emotional_support"
+aliases = [
+  "rough day",
+  "i feel sick",
+  "i miss them",
+  "i am scared",
+  "long week",
+  "cannot sleep",
+  "bad day",
+]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "bonding_moment"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "high_agreeableness_anchor"
+weight = 0.85
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "owner_relationship"
+weight = 0.95
+
+[[nodes]]
+id = "status_check"
+aliases = [
+  "how are you",
+  "you okay",
+  "you good",
+  "feeling alright",
+  "everything fine",
+]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "contented"
+weight = 0.9
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "greeting_behavior"
+weight = 0.85
+
+[[nodes]]
+id = "reunion_warm"
+aliases = [
+  "i am home",
+  "back now",
+  "missed you",
+  "hello again",
+  "i am here",
+  "i have to go to work",
+  "heading back",
+  "i'm home",
+  "i'm back",
+  "just got home",
+  "finally home",
+  "i missed you",
+  "just got back",
+]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "greeting_behavior"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "owner_relationship"
+weight = 0.95
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "excited"
+weight = 0.85
+
+[[nodes]]
+id = "reassurance_seeking"
+aliases = [
+  "it is over now",
+  "you are safe",
+  "the loud thing stopped",
+  "i am right here",
+  "come out now",
+  "you can come out",
+]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "trust_repair"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "anxious"
+weight = 0.85
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "high_agreeableness_anchor"
+weight = 0.75
+
+[[nodes]]
+id = "treat_offer"
+aliases = [
+  "want a treat",
+  "want a treat?",
+  "snack time",
+  "little bite",
+  "cookie for you",
+  "treat yes or no",
+  "training treat",
+]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "treat"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "mealtime"
+weight = 0.85
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "reward_signal"
+weight = 0.9
+
+[[nodes]]
+id = "bedtime_routine"
+aliases = [
+  "time for bed",
+  "sleep soon",
+  "lights out",
+  "night night",
+  "quiet time",
+]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "evening_routine"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "naptime"
+weight = 0.95
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "contented"
+weight = 0.7
+
+[[nodes]]
+id = "separation_announcement"
+aliases = [
+  "i have to go",
+  "heading out",
+  "work now",
+  "be back later",
+  "going to the store",
+  "have to leave",
+]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "owner_absence"
+weight = 1.0
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "separation_distress"
+weight = 0.85
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "greeting_behavior"
+weight = 0.65
+
+[[nodes]]
+id = "simple_acknowledgment"
+aliases = [
+  "thanks pete",
+  "good talk",
+  "okay then",
+  "fair enough",
+  "noted",
+  "you're so silly",
+  "ok pete",
+]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "contented"
+weight = 0.85
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "greeting_behavior"
+weight = 0.65
+
+[[nodes]]
+id = "open_ended_chat"
+aliases = [
+  "explain",
+  "what is",
+  "define",
+  "how does",
+  "write me",
+  "code",
+  "solve",
+  "calculate",
+  "help me",
+  "tell me about",
+  "homework",
+  "what time",
+  "who is",
+]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "curious_state"
+weight = 0.9
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "playful_state"
+weight = 0.7
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "cheerful_companion"
+weight = 0.6
+
+[[nodes]]
+id = "lore_qa"
+aliases = [
+  "favorite color",
+  "favorite meal",
+  "favorite snack",
+  "favorite toy",
+  "favorite movie",
+  "favorite music",
+  "where do you live",
+  "where are you from",
+  "nickname",
+  "what do you like to be called",
+  "aristocats",
+  "jazz",
+  "catalonia",
+]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "open_ended_chat"
+weight = 0.75
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "cheerful_companion"
+weight = 0.85
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "curious_state"
+weight = 0.7
+
+# ======================================================================
+# Coverage nodes — anchors for thin-topic training rows
+# ======================================================================
+
+[[nodes]]
+id = "weather_commentary"
+aliases = ["weather", "rain", "snow", "sun_patch", "wind", "thunder_weather"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "curious_state"
+weight = 0.7
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "window_watching"
+weight = 0.8
+
+[[nodes]]
+id = "visitor_alert"
+aliases = ["visitor", "stranger_alert", "doorbell"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "stranger_present"
+weight = 0.9
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "territorial_response"
+weight = 0.7
+
+[[nodes]]
+id = "compliment"
+aliases = ["compliment_response", "praised"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "contented"
+weight = 0.8
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "dignified_observer"
+weight = 0.6
+
+[[nodes]]
+id = "routine_transition"
+aliases = ["routine", "morning_routine"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "routine_adherence"
+weight = 0.9
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "evening_routine"
+weight = 0.7
+
+[[nodes]]
+id = "mealtime_check"
+aliases = ["food_check", "hearth_offering_status", "did you eat already"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "mealtime"
+weight = 0.9
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "hunger"
+weight = 0.7
+
+[[nodes]]
+id = "anxiety_trigger"
+aliases = ["anxious_trigger", "stress_trigger"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "anxious"
+weight = 0.9
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "afraid"
+weight = 0.7
+
+[[nodes]]
+id = "grooming_offer"
+aliases = ["brush_offer", "nail_offer"]
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "grooming"
+weight = 0.9
+[[nodes.edges]]
+kind = "adjacent_to"
+target = "bonding_moment"
+weight = 0.6

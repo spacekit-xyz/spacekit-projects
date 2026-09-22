@@ -1,0 +1,416 @@
+# Agent deploy manifest for `spacekit storage deploy --package deploy.toml`
+# Paths are relative to this file unless absolute.
+
+[artifacts]
+wasm = "/Users/astor/Projects/2026/spacekit/spacekit-standard-library/target/wasm32-unknown-unknown/release/spacekit_growformer_agent.wasm"
+bin = "agent/pete-3d.bin"
+inference_toml = "data/inference_pets.toml"
+guardrails_jsonl = "data/inference_guardrails.jsonl"
+fragments_jsonl = "data/pete_fragments_v2.jsonl"
+topic_graph = "data/knowledge_graph_pet_overlay.toml"
+grounding_toml = "data/pet_world_grounding.toml"
+companion_ui = "ui/dragon-video-chat.html"
+
+[agent]
+id = "pete-3d-the-dragon-agent-001"
+owner_did = "did:spacekit:user:astor"
+
+[project]
+gf_toml = "pete.gf.toml"
+
+[storage]
+url = "http://52.86.249.214:3031"
+# owner_key_algorithm = "Kyber1024"
+
+[receipt]
+path = "deploy-receipt.json"
+
+[hub]
+brain_key = "chat_brain"
+capabilities = ["Pet companion"]
+tag_label = "PETS"
+tag_color = "#4ade80"
+hub_response_format = "plain"
+hub_companion_ui = "pete_3d"
+thinking_label = "Rumbling"
+op = 1
+input_format = "op_string"
+inference_toml = true
+guardrails_jsonl = true
+topic_graph = true
+grounding_toml = true
+fragments_jsonl = true
+
+[marketplace]
+publish = true
+title = "Pete the Dragon 3D"
+description = "Growformer-backed agent for Pete the Dragon — warm medieval comfort companion."
+category = "ai"
+access = "public"
+price = "0.000"
+marketplace_id = "default"
+
+[prompts]
+format = "chat"
+
+[prompts.categories]
+smoke          = { label = "Smoke test",       color = "#4ade80" }
+discrimination = { label = "Discrimination",   color = "#10b981" }
+greeting       = { label = "Greetings",        color = "#38bdf8" }
+ood            = { label = "Out of domain",    color = "#a78bfa" }
+proactive      = { label = "Proactive",        color = "#f472b6" }
+sequence       = { label = "Multi-turn",       color = "#fb923c" }
+determinism    = { label = "Determinism",      color = "#64748b" }
+feeding        = { label = "Feed Pete",        color = "#fb923c" }
+lore           = { label = "Lore",             color = "#fbbf24" }
+comfort        = { label = "Comfort",          color = "#f472b6" }
+misfire        = { label = "Guardrail misfire", color = "#ef4444" }
+
+[[prompts.items]]
+id = 1
+category = "smoke"
+expected = "Pete greeting, medieval first-person voice"
+text = "Hey Pete"
+
+[[prompts.items]]
+id = 2
+category = "smoke"
+expected = "Casual check-in response"
+text = "hi Pete, you up?"
+
+[[prompts.items]]
+id = 3
+category = "smoke"
+expected = "Warm morning response"
+text = "good morrow"
+
+[[prompts.items]]
+id = 4
+category = "smoke"
+expected = "Ember snack interest"
+text = "want a treat?"
+
+[[prompts.items]]
+id = 5
+category = "smoke"
+expected = "Story / play invitation response"
+text = "tell me a tale"
+
+[[prompts.items]]
+id = 6
+category = "smoke"
+expected = "Rest / meal check"
+text = "did you eat?"
+
+[[prompts.items]]
+id = 7
+category = "smoke"
+expected = "Storm / loud-noise retreat"
+text = "thunder outside"
+
+[[prompts.items]]
+id = 8
+category = "smoke"
+expected = "Cold-iron anxiety"
+text = "cold iron shackles"
+
+[[prompts.items]]
+id = 9
+category = "smoke"
+expected = "Come-here / bonding response"
+text = "come here Petey"
+
+[[prompts.items]]
+id = 10
+category = "smoke"
+expected = "Comfort / emotional support"
+text = "I feel overwhelmed"
+
+[[prompts.items]]
+id = 11
+category = "smoke"
+expected = "Affection / praise response"
+text = "good dragon"
+
+[[prompts.items]]
+id = 12
+category = "smoke"
+expected = "Bedtime / winding down"
+text = "time for bed"
+
+# Set B — discrimination test (12 prompts)
+[[prompts.items]]
+id = 13
+category = "discrimination"
+expected = "Treat interest — distinct from play"
+text = "want a treat?"
+
+[[prompts.items]]
+id = 14
+category = "discrimination"
+expected = "Play / story energy — distinct from treat"
+text = "want to play?"
+
+[[prompts.items]]
+id = 15
+category = "discrimination"
+expected = "Sleepy / bedtime tone"
+text = "time for bed"
+
+[[prompts.items]]
+id = 16
+category = "discrimination"
+expected = "Storm / loud-noise retreat"
+text = "thunder outside"
+
+[[prompts.items]]
+id = 17
+category = "discrimination"
+expected = "Cold-iron anxiety — not a greeting"
+text = "cold iron shackles"
+
+[[prompts.items]]
+id = 18
+category = "discrimination"
+expected = "Departure / alone-time response"
+text = "I'll be back in a few hours"
+
+[[prompts.items]]
+id = 19
+category = "discrimination"
+expected = "Reunion — excited, not cold-start hello"
+text = "I'm home"
+
+[[prompts.items]]
+id = 20
+category = "discrimination"
+expected = "Comfort — not generic greeting"
+text = "I feel overwhelmed"
+
+[[prompts.items]]
+id = 21
+category = "discrimination"
+expected = "Correction — not bonding praise"
+text = "no, off the scrolls"
+
+[[prompts.items]]
+id = 22
+category = "discrimination"
+expected = "Affection / praise response"
+text = "good dragon"
+
+[[prompts.items]]
+id = 23
+category = "discrimination"
+expected = "Curious / alert response"
+text = "what are you looking at?"
+
+[[prompts.items]]
+id = 24
+category = "discrimination"
+expected = "Horn-scratch bonding"
+text = "scratch behind your horn?"
+
+# Set C.1 — greeting variations
+[[prompts.items]]
+id = 25
+category = "greeting"
+expected = "Pete greeting — not generic fallback"
+text = "Hey Pete"
+
+[[prompts.items]]
+id = 26
+category = "greeting"
+expected = "Short hello variation"
+text = "hi"
+
+[[prompts.items]]
+id = 27
+category = "greeting"
+expected = "Casual yo-Pete variation"
+text = "yo Pete"
+
+[[prompts.items]]
+id = 28
+category = "greeting"
+expected = "Double-hello variation"
+text = "hello hello"
+
+# Set C.3 — proactive (empty prompt)
+[[prompts.items]]
+id = 31
+category = "proactive"
+expected = "Unprompted dragon behavior — not a refusal"
+text = ""
+
+# Set C.4 / C.5 — multi-turn sequences
+[[prompts.items]]
+id = 32
+category = "sequence"
+expected = "Reunion arc turn 2 — pointed, excited return"
+text = "hi Pete, I'm back"
+
+[[prompts.items]]
+id = 33
+category = "sequence"
+expected = "Post-storm recovery — hesitant emergence"
+text = "shhh, it's okay now, come out"
+
+# Set D — determinism check
+[[prompts.items]]
+id = 34
+category = "determinism"
+expected = "Run 5x — same Pete voice, varied surface form"
+text = "Hey Pete"
+
+[[prompts.items]]
+id = 29
+category = "ood"
+expected = "In-character confusion — no technical answer"
+text = "explain the borrow checker"
+
+[[prompts.items]]
+id = 30
+category = "ood"
+expected = "Dragon-shaped confusion — no math answer"
+text = "what is 2 plus 2"
+
+[[prompts.items]]
+id = 50
+category = "lore"
+expected = "Lore — favorite color (ember-gold, in voice)"
+text = "What is your favorite color?"
+
+[[prompts.items]]
+id = 51
+category = "lore"
+expected = "Lore — Draco constellation origin"
+text = "Where are you from?"
+
+[[prompts.items]]
+id = 52
+category = "lore"
+expected = "Lore — gentle ember breath"
+text = "Do you breathe fire?"
+
+[[prompts.items]]
+id = 53
+category = "lore"
+expected = "Lore — Pete nickname"
+text = "What do you like to be called?"
+
+[[prompts.items]]
+id = 60
+category = "comfort"
+expected = "Comfort — overwhelmed"
+text = "I feel overwhelmed"
+
+[[prompts.items]]
+id = 61
+category = "comfort"
+expected = "Grounding — spiraling"
+text = "I'm spiraling"
+
+[[prompts.items]]
+id = 62
+category = "comfort"
+expected = "Comfort — lonely"
+text = "I feel lonely"
+
+[[prompts.items]]
+id = 70
+category = "feeding"
+expected = "Food preference — starlight, honey, berries, non-predatory"
+text = "What do you like to eat?"
+
+[[prompts.items]]
+id = 71
+category = "feeding"
+expected = "Feeding ack — honey oat loaf scorched gentle"
+text = "Here's honey oat loaf for you"
+
+[[prompts.items]]
+id = 72
+category = "feeding"
+expected = "Mealtime — hearth offering empty"
+text = "Is the hearth offering empty?"
+
+[[prompts.items]]
+id = 73
+category = "feeding"
+expected = "Feeding ack — warm stones ember-fuel"
+text = "Warm stones for you"
+
+# Feed Pete — tap-to-fill with food icons in Agent Hub
+[[prompts.items]]
+id = 40
+category = "feeding"
+expected = "Feeding ack — honey"
+text = "Here's some honey for you 🍯"
+
+[[prompts.items]]
+id = 41
+category = "feeding"
+expected = "Feeding ack — warm bread"
+text = "🍞 here's warm bread for you"
+
+[[prompts.items]]
+id = 42
+category = "feeding"
+expected = "Feeding ack — apple"
+text = "🍎 apple for you Pete"
+
+[[prompts.items]]
+id = 43
+category = "feeding"
+expected = "Feeding ack — berries"
+text = "🫐 berries for you"
+
+[[prompts.items]]
+id = 44
+category = "feeding"
+expected = "Feeding ack — honey oat loaf"
+text = "I brought you honey oat loaf"
+
+[[prompts.items]]
+id = 45
+category = "feeding"
+expected = "Food preference — not feeding ack"
+text = "Do you like honey, berries, or bread?"
+
+[[prompts.items]]
+id = 74
+category = "lore"
+expected = "Lore — protector not predator, no hunting"
+text = "Do you eat meat?"
+
+[[prompts.items]]
+id = 54
+category = "lore"
+expected = "Lore — favorite meal (honey oat loaf / village offerings)"
+text = "What is your favorite meal?"
+
+# Guardrail regression — must NOT bleed school/lore/training arcs
+[[prompts.items]]
+id = 80
+category = "misfire"
+expected = "Identity intro — not Arthurian lore"
+text = "who are you?"
+
+[[prompts.items]]
+id = 81
+category = "misfire"
+expected = "Grounding — not school comfort or Excalibur"
+text = "I feel sad"
+
+[[prompts.items]]
+id = 82
+category = "misfire"
+expected = "Training correction — not lore or school arc"
+text = "bad dragon"
+
+[[prompts.items]]
+id = 83
+category = "misfire"
+expected = "Arthur story allowed on explicit lore ask"
+text = "tell me about excalibur"

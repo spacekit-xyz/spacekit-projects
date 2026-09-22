@@ -1,0 +1,207 @@
+# Agent deploy manifest for `spacekit storage deploy --package deploy.toml`
+# Paths are relative to this file unless absolute.
+
+[artifacts]
+wasm = "/Users/astor/Projects/2026/spacekit/spacekit-standard-library/target/wasm32-unknown-unknown/release/spacekit_growformer_fintech_analysis.wasm"
+bin = "agent/fintech-brain.bin"
+
+[agent]
+id = "fintech-sentiment-analysis-agent-001"
+# owner_did = "did:spacekit:..."  # optional; defaults to `spacekit init` identity
+
+[project]
+# Optional: read growformer.brain_storage_key when [hub].brain_key is omitted
+gf_toml = "fintech-sentiment-analysis.gf.toml"
+
+[storage]
+# url = "http://127.0.0.1:3030"
+# owner_key_algorithm = "Kyber1024"
+
+[receipt]
+path = "deploy-receipt.json"
+
+[hub]
+# Must match AGENT_BRAIN in spacekit-growformer-fintech-analysis/src/lib.rs
+brain_key = "fintech_brain"
+capabilities = ["Sentiment analysis"]
+tag_label = "FINANCE"
+tag_color = "#0ea5e9"
+hub_response_format = "growformer" # growformer | plain
+thinking_label = "Analyzing"
+# op = 1
+# input_format = "string_only"     # string_only | op_string
+
+[marketplace]
+publish = true
+title = "Fintech Sentiment Analysis"
+description = "Growformer-backed agent for fintech sentiment analysis."
+category = "ai"
+access = "public"
+price = "0.002" # pay-per-use aUSD; use "free" for no charge
+marketplace_id = "default"
+
+
+# Optional: preload sample prompts for the agent
+# These are served to the website via the agent's FactPackage metadata
+# so the frontend does not need to hardcode them.
+
+[prompts]
+format = "sentiment"
+
+[prompts.categories]
+tradfi    = { label = "TradFi / Desk",    color = "#1D9E75" }
+retail    = { label = "Retail Banking",   color = "#378ADD" }
+corporate = { label = "Corporate / M&A",  color = "#7F77DD" }
+sarcasm   = { label = "Sarcasm / Mixed",  color = "#BA7517" }
+slang     = { label = "Slang / Register", color = "#D4537E" }
+edge      = { label = "Edge Cases",       color = "#888780" }
+
+[[prompts.items]]
+id = 1
+category = "tradfi"
+expected = "NEG strong"
+text = "The two-ten spread un-inverted for the first time in eighteen months and nobody celebrated"
+
+[[prompts.items]]
+id = 2
+category = "tradfi"
+expected = "POS strong"
+text = "Best quarter the rates desk has had in five years, we printed money on every major trade"
+
+[[prompts.items]]
+id = 3
+category = "tradfi"
+expected = "NEG mild"
+text = "Bond auction tailed by six basis points; dealers are sitting on way too much duration"
+
+[[prompts.items]]
+id = 4
+category = "tradfi"
+expected = "NEG strong"
+text = "Stock gapped down on the open, bounced off VWAP, then bled out into the close anyway"
+
+[[prompts.items]]
+id = 5
+category = "tradfi"
+expected = "NEG mild"
+text = "The CEO called the layoffs a \"strategic realignment\" while 3,000 people got walked out the door"
+
+[[prompts.items]]
+id = 6
+category = "retail"
+expected = "NEG strong"
+text = "The bank charged me three separate fees for the same transaction and customer service said there is nothing they can do"
+
+[[prompts.items]]
+id = 7
+category = "retail"
+expected = "POS mild"
+text = "Switched to the online bank last month and honestly the experience has been excellent, zero fees, instant notifications, great app"
+
+[[prompts.items]]
+id = 8
+category = "retail"
+expected = "NEG strong"
+text = "The branch closed my account without warning and it took three weeks to get my money back"
+
+[[prompts.items]]
+id = 9
+category = "retail"
+expected = "POS strong"
+text = "I love the new mobile banking app, it's fast, clean, and the check deposit works perfectly"
+
+[[prompts.items]]
+id = 10
+category = "retail"
+expected = "POS strong"
+text = "The refinance closed in under three weeks with zero surprises, best lending experience I've ever had"
+
+[[prompts.items]]
+id = 11
+category = "corporate"
+expected = "NEUTRAL"
+text = "Revenue grew 12% but operating margin contracted 400 basis points, street sold it hard"
+
+[[prompts.items]]
+id = 12
+category = "corporate"
+expected = "NEUTRAL"
+text = "The activist took a 9% stake and the CEO resigned within the week"
+
+[[prompts.items]]
+id = 13
+category = "corporate"
+expected = "POS mild"
+text = "Synergy targets were $500M; the integration team already found $700M in redundancies"
+
+[[prompts.items]]
+id = 14
+category = "corporate"
+expected = "NEG strong"
+text = "The stock lost half its value after the accounting restatement and now the auditors are under investigation too"
+
+[[prompts.items]]
+id = 15
+category = "sarcasm"
+expected = "SARCASTIC"
+text = "Oh great, another maintenance window during trading hours. Exactly what I needed today"
+
+[[prompts.items]]
+id = 16
+category = "sarcasm"
+expected = "NEG mild"
+text = "The app crashed during market hours but at least the notification about planned downtime came through, two hours after it ended"
+
+[[prompts.items]]
+id = 17
+category = "sarcasm"
+expected = "MIXED"
+text = "It's not great, but it's the least bad option for international wires under $10K"
+
+[[prompts.items]]
+id = 18
+category = "sarcasm"
+expected = "POS mild"
+text = "The new mobile app is genuinely good, fast, clean, and the check deposit actually works first try"
+
+[[prompts.items]]
+id = 19
+category = "slang"
+expected = "NEG strong"
+text = "I hate working with this prime broker; they botched the margin call and we lost the entire position"
+
+[[prompts.items]]
+id = 20
+category = "slang"
+expected = "NEG strong"
+text = "Horrible experience with the wire desk, they botched the SWIFT code and my payment ended up in the wrong country"
+
+[[prompts.items]]
+id = 21
+category = "slang"
+expected = "NEUTRAL"
+text = "The analyst upgrade was a nothing-burger; stock didn't even twitch on the print"
+
+[[prompts.items]]
+id = 22
+category = "slang"
+expected = "NEG strong"
+text = "Crushed earnings, raised guidance, stock red anyway because algo read \"headcount\" in the transcript"
+
+[[prompts.items]]
+id = 23
+category = "edge"
+expected = "NEUTRAL"
+text = "What's the difference between a fixed and variable rate mortgage?"
+
+[[prompts.items]]
+id = 24
+category = "edge"
+expected = "NEUTRAL"
+text = "ISIN US0378331005 coupon 3.25% maturity 2031-05-15"
+
+[[prompts.items]]
+id = 25
+category = "edge"
+expected = "NEG strong"
+text = "The payment processor suffered a data breach exposing 47 million card numbers and has suspended all transactions pending investigation"

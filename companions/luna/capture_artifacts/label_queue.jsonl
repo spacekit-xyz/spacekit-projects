@@ -1,0 +1,5 @@
+{"phrase": "bad cat", "global_coverage": 1.0, "max_concept_overlap": 1.0, "nearest_concept": "unknown_intent", "tier": "in_lexicon", "label_priority": 0.0, "semantic_intent": "trigger_warning"}
+{"phrase": "who are you?", "global_coverage": 1.0, "max_concept_overlap": 1.0, "nearest_concept": "identity_intro", "tier": "in_lexicon", "label_priority": 0.0, "semantic_intent": "identity_intro"}
+{"phrase": "I feel sad", "global_coverage": 1.0, "max_concept_overlap": 1.0, "nearest_concept": "unknown_intent", "tier": "in_lexicon", "label_priority": 0.0, "semantic_intent": "emotional_support"}
+{"phrase": "shhh, it's okay now, come out", "global_coverage": 1.0, "max_concept_overlap": 1.0, "nearest_concept": "reassurance_seeking", "tier": "in_lexicon", "label_priority": 0.0, "semantic_intent": "reassurance_seeking"}
+{"phrase": "good girl", "global_coverage": 1.0, "max_concept_overlap": 1.0, "nearest_concept": "unknown_intent", "tier": "in_lexicon", "label_priority": 0.0, "semantic_intent": "compliment"}

@@ -1,0 +1,28 @@
+# Cairn linker micro-brain — suggest related note titles from a corpus list.
+#
+# Build corpus:
+#   python3 scripts/build_corpus.py
+# Train:
+#   ./scripts/train.sh
+
+schema_version = 1
+
+[project]
+name = "Cairn Link Suggest"
+author = "Astor Rivera"
+description = "Suggest related note titles as a JSON string array."
+
+[train]
+auto = true
+data_dir = "data"
+brain_output = "agent/linker-brain.bin"
+encoder = "clifford_e8"
+brain_gen_epochs = 1200
+brain_epochs = 800
+
+[inference]
+toml = "data/inference.toml"
+topic_graph = "data/knowledge_graph.toml"
+
+[infer]
+brain = "agent/linker-brain.bin"

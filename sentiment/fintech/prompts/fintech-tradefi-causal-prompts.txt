@@ -1,0 +1,104 @@
+# Fintech + TradFi causal / sentiment regression prompts for `fintech-causal.bin`.
+# One plain-text line per prompt. Blank lines and `#` comments ignored.
+# Use: ./target/release/growformer --infer --brain agent-data/fintech-analysis/fintech-causal.bin --prompts-file data/fintech/fintech-tradefi-causal-prompts.txt
+#
+# Mix: retail banking, markets, credit, rates, insurance, corporate IR, payments / neo-bank,
+# regulatory, M&A, and a few fintech-product lines. Includes hedged, contrastive, and mild irony
+# where net sentiment is intentionally ambiguous — good for causal / mixed buckets.
+#
+# Interpreting runs: desk/wire one-liners may be NEUTRAL (factual market color) in your .gf.toml.
+# If a line pairs **praise + harm** (e.g. liquidity "fine" vs bad fills), avoid leading with the
+# praise clause — models often latch on a single positive token. Prefer harm-first wording below.
+
+# --- Retail banking & deposits ---
+Finally got the savings APY bump after the Fed cut — feels small but I'll take it.
+Branch said the wire would clear same day; it's still pending on day three.
+Overdraft hit twice for the same merchant hold. Chatbot says "we're looking into it."
+Opened a joint account online in ten minutes; the card took three weeks.
+They waived the late fee after one call. Shocked in a good way.
+
+# --- Credit cards & consumer credit ---
+Limit increase showed up the same day I asked. Didn't expect that from this bank.
+APR jumped six points overnight; the only notice was buried on page nine of a PDF.
+Furious: once the 0% promo ended, our statement minimum tripled overnight with no heads-up from the issuer.
+They slashed our credit line despite unchanged income and score; the letter cites vague portfolio-management reasons.
+
+# --- Mortgages & housing finance ---
+Underwriter made us submit the same paystub three times; closing is next week and we're stressed.
+Rate lock expired when the lender missed their own deadline. Now we're priced out.
+Refi saved us $420 a month. Worth every hour of paperwork.
+Appraisal came in $40k under contract; seller won't budge.
+
+# --- Markets — equities & indices ---
+Guidance raised but the stock sold off — street wanted more on margins.
+Beat on revenue, missed on EPS, stock up after hours anyway.
+Another "kitchen sink" quarter; at least they stopped guiding blindly.
+Index closed flat but breadth was terrible — felt worse than the tape.
+
+# --- Fixed income & rates ---
+Two-year yields dropped after the print; long end barely moved — curve bull-flattened.
+CD finally beats my brokerage sweep — first time in years.
+My fills were awful all morning; the desk keeps insisting the screen shows deep liquidity while our prints look like an empty book.
+Real yields turned positive again; growth names finally caught a bid.
+
+# --- FX & cross-border ---
+Invoice landed in euros; our hedges were one week short and we ate the move.
+Treasury locked FX for the acquisition close; spot gapped the wrong way anyway.
+Remittance hit the recipient in minutes; fee was half what Western Union quoted last year.
+
+# --- Investment banking / M&A / corporate actions ---
+Shareholders are getting destroyed: stock halted down thirty after the acquirer walked — diligence surfaced revenue-recognition noise.
+Spin-off shares distributed; cost basis letter still "coming soon" six months later.
+Tender offer expired undersubscribed; minority holders feel stuck.
+Friendly merger "synergies" already showing as headcount reductions.
+
+# --- Asset management & wealth ---
+Advisor pushed a fund with a 1.5% expense ratio for a vanilla index sleeve. Hard pass.
+Robo rebalanced into bonds right before the rally. Classic.
+RIA finally aggregated all accounts in one dashboard — small win, big relief.
+
+# --- Insurance (P&C & life) ---
+Claim adjuster approved the roof; check arrived before the contractor called back.
+Premium doubled after one not-at-fault claim. Shopping carriers now.
+Term policy renewal quote came back 40% higher at the same coverage.
+
+# --- Commercial banking & SMB lending ---
+LOC covenant tripped on working capital; bank wants monthly attestations now.
+PPP forgiveness letter arrived clean — first time this lender got something right on first pass.
+Invoice financing line saved payroll during a sixty-day receivable stretch.
+
+# --- Payments, cards infra, acquiring ---
+Checkout error rate spiked after the gateway upgrade; we're losing carts at peak.
+Tap-to-pay adoption finally passed 80% in our stores; chargebacks didn't move.
+Interchange plus pricing was clear until "network fees" appeared on page four.
+
+# --- Neo-bank / embedded / BaaS ---
+Our embedded wallet KYC rejected valid passports three times; support escalated to nowhere.
+Partner bank retired the BIN range; we had to emergency-reissue every virtual card in one weekend — ops nightmare, no upside.
+APY teaser ended; the "real" rate is still better than my legacy bank.
+
+# --- Reg / compliance / reporting (often neutral-factual tone) ---
+AML alert triggered on a recurring payroll pattern; compliance wants source-of-funds docs.
+SOX control testing found three P2 exceptions; no material weakness, but remediation budget doubled.
+We filed the 8-K on time; the market still punished us for the footnote on customer concentration.
+
+# --- Fintech earnings & KPIs (tradFi-style language) ---
+NRR dipped below 110% for the first time in eight quarters; management blamed macro, not churn.
+Take rate expanded but TPV growth stalled — quality of revenue debate on the call.
+Unit economics improved; stock down because "growth slowed."
+
+# --- Contrastive / causal hedges (good stress for mixed + sarcasm) ---
+Guidance cut overshadowed the EPS beat; shares still rose after hours as the desk bought the cost-discipline story.
+The loan was approved. The rate was not what we were quoted in the pre-approval letter.
+Customer satisfaction scores hit a record; NPS still flat because promoters won't answer surveys.
+Bankruptcy filing says they're "excited about the next chapter." Creditors less excited.
+
+# --- Institutional voice / wire fragments ---
+Fed officials signal higher-for-longer; risk assets digest mixed signals.
+Investment grade new issue concession tightens as order books build.
+LBO financing pulled amid syndicate pushback on covenants.
+
+# --- Short operator / desk chatter (still TradFi register) ---
+Offered size in the five-year, no lift.
+Bid dropped ten cents on the headline — at first we read it as a fat finger, but the level held and nothing swept.
+Dealer ran my TRACE late again.

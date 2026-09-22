@@ -1,0 +1,47 @@
+# Pets lattice micro-brain — run from the growformer crate root, or adjust paths.
+#
+# Topic graph (infer_operation_topic): growformer resolves `data/knowledge_graph.toml`
+# relative to the **project manifest directory** when `--project` is set (see neurokit
+# growformer `cli_impl.rs`), otherwise relative to process cwd.
+#
+# This project ships a **Pete-only** `data/knowledge_graph.toml` (pet domain anchors +
+# `pet_chat` → PetCompanion). Phrase routing is in `knowledge_graph_pet_overlay.toml`.
+# Do not replace the base file with the crypto graph — it causes cross-domain false matches.
+#
+# Example infer from pete/ (uses [infer].brain if you omit --brain):
+#   cd spacekit-projects/pete
+#   spacekit agent infer --project pete.gf.toml --prompt "Hey Pete"
+
+schema_version = 1
+
+[project]
+name = "Pete the Dragon"
+author = "Astor Rivera"
+description = "Pete the Dragon 3D the dragon companion brain trained on pet-domain chat."
+
+[train]
+auto = true
+# Paths are relative to this file. Training merges all `*.jsonl` under data_dir (filename-sorted).
+# `inference_guardrails.jsonl` is loaded only at inference via `[inference].guardrails_jsonl`, not as training rows.
+# Pete canonical corpus: `data/pete_seed_v2.jsonl` (250 rows) plus PETE.md-derived comfort rows.
+# Long freeform sessions: `data/pete_freeform_v1.jsonl` + `generate_pete_freeform_v1.py`.
+# Authentic Arthurian / Matter of Britain stories: `data/pete_arthurian_lore_stories_v1.jsonl` (training) +
+# `scripts/pete_arthurian_lore_stories.py` + `generate_pete_arthurian_lore_stories_v1.py`.
+# Validate with `python3 scripts/validate_pete_seed_v2.py`. Training merges all `data/*.jsonl`.
+# `pete_comfort_bible_v1.jsonl` and superseded `pete_storytelling_v1.jsonl` are archived under `data/archive/`.
+# Lexicon / concept graph: `data/pet_world_grounding.toml` plus `data/knowledge_graph*.toml`.
+data_dir = "data"
+brain_output = "agent/pete-3d.bin"
+brain_plugins_toml = "data/plugins/example-brain-plugins.toml"
+encoder = "clifford_e8"
+brain_gen_epochs = 3000
+
+[inference]
+toml = "data/inference_pets.toml"
+topic_graph = "data/knowledge_graph_pet_overlay.toml"
+grounding_toml = "data/pet_world_grounding.toml"
+fragments_jsonl = "data/pete_fragments_v2.jsonl"
+guardrails_jsonl = "data/inference_guardrails.jsonl"
+
+[infer]
+brain = "agent/pete-3d.bin"

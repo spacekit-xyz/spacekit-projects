@@ -1,0 +1,28 @@
+# Crypto / DeFi sentiment — canonical project under spacekit-projects/sentiment/crypto.
+# Train / infer from growformer crate root, e.g.:
+#   cargo run --release --no-default-features --features cli,native --bin growformer -- \
+#     --train-brain --project /path/to/spacekit-projects/sentiment/crypto/crypto-sentiment-analysis.gf.toml
+
+schema_version = 1
+
+[project]
+name = "Crypto DeFi Sentiment Analysis"
+author = "Astor Rivera"
+description = "Crypto/DeFi sentiment analysis micro-brain. Classifies cryptocurrency, blockchain, and DeFi text into positive (strong/mild), negative (strong/mild), neutral, mixed, and sarcastic with reasoning."
+
+[train]
+auto = true
+data_dir = "data"
+brain_output = "agent/crypto-brain.bin"
+brain_plugins_toml = "data/plugins/example-brain-plugins.toml"
+encoder = "clifford_e8"
+brain_gen_epochs = 3000
+
+[inference]
+toml = "data/inference_crypto.toml"
+guardrails_jsonl = "data/inference_guardrails.jsonl"
+topic_graph = "data/knowledge_graph.toml"
+grounding_toml = "data/world_grounding_crypto.toml"
+
+[infer]
+brain = "agent/crypto-brain.bin"

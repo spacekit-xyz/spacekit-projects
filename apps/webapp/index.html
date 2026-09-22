@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hello SpaceKit</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: #080b0f;
+      color: #e5e7eb;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      max-width: 480px;
+      width: 100%;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 28px 32px;
+      text-align: center;
+    }
+    h1 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+    .subtitle { font-size: 13px; color: #9ca3af; margin-bottom: 20px; }
+    .did-box {
+      background: rgba(103,232,249,0.06);
+      border: 1px solid rgba(103,232,249,0.2);
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      color: #67e8f9;
+      word-break: break-all;
+      margin-bottom: 16px;
+      min-height: 40px;
+    }
+    .row { display: flex; gap: 8px; margin-bottom: 12px; }
+    input {
+      flex: 1;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: #e5e7eb;
+      font-size: 13px;
+      outline: none;
+      font-family: inherit;
+    }
+    input:focus { border-color: rgba(103,232,249,0.4); }
+    button {
+      background: linear-gradient(135deg, #67e8f9, #22d3ee);
+      color: #080b0f;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+    button:hover { opacity: 0.85; }
+    button.secondary {
+      background: rgba(99,102,241,0.15);
+      color: #c7d2fe;
+      border: 1px solid rgba(99,102,241,0.3);
+    }
+    .log {
+      margin-top: 16px;
+      text-align: left;
+      font-size: 12px;
+      color: #6b7280;
+      max-height: 160px;
+      overflow-y: auto;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding-top: 12px;
+    }
+    .log-entry { margin-bottom: 4px; }
+    .log-entry .ok { color: #34d399; }
+    .log-entry .err { color: #ef4444; }
+    .log-entry .val { color: #67e8f9; font-family: 'IBM Plex Mono', monospace; }
+    .badge {
+      display: inline-block;
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 99px;
+      background: rgba(99,102,241,0.15);
+      color: #c7d2fe;
+      border: 1px solid rgba(99,102,241,0.3);
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <span class="badge">SpaceKit WebPackage Demo</span>
+    <h1>Hello SpaceKit</h1>
+    <p class="subtitle">
+      This app uses the SpaceKit SDK bridge to call identity, storage, and messaging.
+    </p>
+
+    <div class="did-box" id="did-display">Loading identity…</div>
+
+    <div class="row">
+      <input id="key-input" placeholder="Storage key" value="greeting" />
+      <input id="val-input" placeholder="Value" value="Hello from SpaceKit!" />
+      <button onclick="saveValue()">Save</button>
+    </div>
+    <div class="row">
+      <button class="secondary" onclick="loadValue()" style="flex:1">Load Saved Value</button>
+      <button class="secondary" onclick="fetchDid()" style="flex:1">Refresh DID</button>
+    </div>
+
+    <div class="log" id="log"></div>
+  </div>
+
+  <script>
+    var log = document.getElementById("log");
+    var didBox = document.getElementById("did-display");
+
+    function addLog(msg, cls) {
+      var el = document.createElement("div");
+      el.className = "log-entry";
+      el.innerHTML = '<span class="' + (cls || "") + '">' + msg + "</span>";
+      log.prepend(el);
+    }
+
+    function fetchDid() {
+      if (!window.spacekit) {
+        didBox.textContent = "SDK not available (run inside SpaceKit)";
+        addLog("No SDK bridge found", "err");
+        return;
+      }
+      window.spacekit.identity.did().then(function (did) {
+        didBox.textContent = did || "No DID registered";
+        addLog("DID: <span class='val'>" + (did || "none") + "</span>", "ok");
+      }).catch(function (e) {
+        didBox.textContent = "Error: " + e.message;
+        addLog("DID error: " + e.message, "err");
+      });
+    }
+
+    function saveValue() {
+      var key = document.getElementById("key-input").value;
+      var val = document.getElementById("val-input").value;
+      if (!key) { addLog("Key is required", "err"); return; }
+      if (!window.spacekit) { addLog("No SDK bridge", "err"); return; }
+      window.spacekit.storage.set(key, val).then(function () {
+        addLog("Saved <span class='val'>" + key + "</span> = " + val, "ok");
+      }).catch(function (e) {
+        addLog("Save error: " + e.message, "err");
+      });
+    }
+
+    function loadValue() {
+      var key = document.getElementById("key-input").value;
+      if (!key) { addLog("Key is required", "err"); return; }
+      if (!window.spacekit) { addLog("No SDK bridge", "err"); return; }
+      window.spacekit.storage.get(key).then(function (val) {
+        addLog("Loaded <span class='val'>" + key + "</span> = <span class='val'>" + JSON.stringify(val) + "</span>", "ok");
+        if (val !== null) document.getElementById("val-input").value = val;
+      }).catch(function (e) {
+        addLog("Load error: " + e.message, "err");
+      });
+    }
+
+    // Auto-fetch DID on load
+    setTimeout(fetchDid, 300);
+  </script>
+</body>
+</html>

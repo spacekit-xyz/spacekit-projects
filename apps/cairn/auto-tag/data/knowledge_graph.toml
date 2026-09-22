@@ -1,0 +1,30 @@
+# Topic routing for Cairn auto-tag brain.
+
+[[nodes]]
+topic = "auto_tag"
+concept = "GeneralKnowledge"
+category = "cairn"
+priority = 30
+[[nodes.rules]]
+any = [
+  "auto-tag",
+  "auto tag",
+  "tag this",
+  "tag:",
+  "suggest tags",
+  "add tags",
+  "label this",
+  "keywords for",
+  "topics for",
+]
+
+[[nodes]]
+topic = "auto_tag"
+concept = "GeneralKnowledge"
+category = "cairn"
+priority = 5
+# Catch-all: bare note body routed to auto_tag (single-group brain).
+[[nodes.rules]]
+
+[action_target_concepts]
+auto_tag = "GeneralKnowledge"

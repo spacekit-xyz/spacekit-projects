@@ -1,0 +1,16 @@
+# Fintech/crypto sentiment regression prompts — one plain-text line per prompt (no wrapping quotes needed).
+# Blank lines ignored; lines starting with # are comments. Use: --infer --prompts-file data/fintech/fintech-prompts.txt
+# Locked 20-line tape suite (train_sentiment_fintech_crypto.jsonl crypto_110–129): use fintech-prompts-v2.txt. This file is a broader smoke list; expect weak alignment unless the brain matches its training mix.
+New Cryptocurrency Picks as ETH Stakes $143M, Pepeto Leads
+
+Google Ads Certification Process For Cryptocurrency
+
+Where Will the Cryptocurrency XRP Be in 5 Years? | The Motley Fool
+
+IC3 Report Reveals Surge In Cryptocurrency Investment Scams
+
+Cryptocurrency accounts seized in $2.3M money laundering scheme
+
+New rules for cryptocurrency investors who must now declare investments to HMRC
+
+Cardano leads drops as large cryptocurrencies start mixed

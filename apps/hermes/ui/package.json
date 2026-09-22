@@ -1,0 +1,30 @@
+{
+  "name": "hermes",
+  "version": "1.0.0",
+  "description": "Hermes is the native SpaceKit Messenger app",
+  "license": "ISC",
+  "author": "astor@spacekit.xyz",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@spacekit/sdk": "file:../../../../spacekit-sdk",
+    "@tanstack/react-query": "^5.62.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "viem": "^2.21.0",
+    "wagmi": "^2.14.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.16",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.2",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.16"
+  }
+}

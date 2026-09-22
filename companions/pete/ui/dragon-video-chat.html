@@ -1,0 +1,854 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Pete the Dragon</title>
+<style>
+  :root { --bg:#1a1822; --ink:#f3ecdc; --accent:#6be04a; --muted:#9a93a8; --panel:rgba(20,18,28,0.82); }
+  * { box-sizing: border-box; }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--ink);
+    font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif; overflow:hidden; }
+
+  .chat-frame { position:absolute; inset:0; display:flex; flex-direction:column; }
+
+  .video-area { flex:1; position:relative; overflow:hidden; background:#0e1210; }
+  .video-area canvas {
+    position:absolute; inset:0; width:100%; height:100%;
+    image-rendering:pixelated; image-rendering:crisp-edges;
+  }
+
+  #stateLabel {
+    position:absolute; bottom:16px; left:50%; transform:translateX(-50%);
+    background:rgba(0,0,0,0.5); backdrop-filter:blur(8px);
+    padding:4px 14px; border-radius:20px;
+    font-size:12px; color:var(--muted); letter-spacing:0.08em;
+    text-transform:lowercase; pointer-events:none;
+  }
+  #stateLabel b { color:var(--accent); }
+
+  #vitalsBar {
+    position:absolute; top:10px; left:50%; transform:translateX(-50%);
+    background:rgba(0,0,0,0.55); backdrop-filter:blur(8px);
+    padding:4px 12px; border-radius:16px;
+    font-size:10px; color:var(--muted); letter-spacing:0.04em;
+    font-family:"IBM Plex Mono","Courier New",monospace;
+    pointer-events:none; white-space:nowrap; z-index:2;
+    display:none;
+  }
+  #vitalsBar b { color:var(--accent); font-weight:600; }
+
+  .bottom-bar {
+    display:flex; align-items:center; justify-content:center;
+    gap:8px; padding:12px 16px;
+    background:rgba(0,0,0,0.4);
+    border-top:1px solid rgba(255,255,255,0.06);
+    flex-wrap:wrap;
+  }
+  .bottom-bar button {
+    background:transparent; color:var(--ink); border:1px solid rgba(255,255,255,0.15);
+    padding:6px 12px; border-radius:8px; font:inherit; font-size:11px;
+    cursor:pointer; text-transform:lowercase; letter-spacing:0.04em;
+    transition:all 0.15s;
+  }
+  .bottom-bar button:hover { border-color:var(--accent); }
+  .bottom-bar button.on { background:var(--accent); color:#0a1a06; border-color:var(--accent); }
+
+  #err { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    background:#ff4444; color:white; padding:20px 30px; border-radius:10px;
+    font-family:monospace; font-size:14px; max-width:80%; display:none; z-index:10; }
+</style>
+</head>
+<body>
+
+<div class="chat-frame">
+
+  <div class="video-area">
+    <canvas id="stage"></canvas>
+    <div id="vitalsBar"></div>
+    <div id="stateLabel">mood: <b id="stateName">idle</b></div>
+  </div>
+</div>
+
+<div id="err"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script>
+(function() {
+  const errEl = document.getElementById('err');
+  function showErr(m) { errEl.textContent = m; errEl.style.display = 'block'; }
+  window.addEventListener('error', e => showErr('Error: ' + e.message));
+  if (!window.THREE) { showErr('three.js failed to load'); return; }
+
+  const embedded = window.parent !== window;
+  const vitalsBar = document.getElementById('vitalsBar');
+  const DEFAULT_VITALS = { mood: 0.65, hunger: 0.52, energy: 0.55 };
+
+  function formatVitals(v) {
+    if (!v) return '';
+    const mood = typeof v.mood === 'number' ? v.mood.toFixed(2) : '?';
+    const hunger = typeof v.hunger === 'number' ? v.hunger.toFixed(2) : '?';
+    let line = 'mood: <b>' + mood + '</b> · hunger: <b>' + hunger + '</b>';
+    if (typeof v.hunger === 'number' && v.hunger >= 0.42) {
+      line += ' · <span style="opacity:0.75">try feeding me</span>';
+    } else if (typeof v.mood === 'number' && v.mood <= 0.42) {
+      line += ' · <span style="opacity:0.75">pet me?</span>';
+    }
+    return line;
+  }
+
+  if (embedded) {
+    document.getElementById('stateLabel').style.display = 'none';
+    // document.getElementById('states').style.display = 'none';
+    if (vitalsBar) {
+      vitalsBar.style.display = 'block';
+      vitalsBar.innerHTML = formatVitals(DEFAULT_VITALS);
+    }
+  }
+
+  function applyCompanionState(s) {
+    if (!s || !states[s]) return;
+    if (s === currentState) return;
+    prevState = currentState; currentState = s; blendT = 0;
+    const nameEl = document.getElementById('stateName');
+    if (nameEl) nameEl.textContent = s;
+  }
+
+  function applyCompanionVitals(v) {
+    if (!vitalsBar || !v) return;
+    vitalsBar.innerHTML = formatVitals(v);
+  }
+
+  const cvs = document.getElementById('stage');
+  const renderer = new THREE.WebGLRenderer({ canvas: cvs, antialias: false });
+  renderer.setPixelRatio(1);
+  renderer.setClearColor(0x0e1210);
+
+  let renderTarget, pixelSize = 2;
+  function makeRT() {
+    const w = Math.max(32, Math.floor(cvs.clientWidth / pixelSize));
+    const h = Math.max(32, Math.floor(cvs.clientHeight / pixelSize));
+    if (renderTarget) renderTarget.dispose();
+    renderTarget = new THREE.WebGLRenderTarget(w, h, {
+      minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter,
+      format: THREE.RGBAFormat, generateMipmaps: false,
+    });
+    postMat.uniforms.tDiffuse.value = renderTarget.texture;
+  }
+
+  function resize() {
+    const w = Math.max(1, cvs.clientWidth), h = Math.max(1, cvs.clientHeight);
+    renderer.setSize(w, h, false);
+    makeRT();
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    postMat.uniforms.uResolution.value.set(w, h);
+  }
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
+  camera.position.set(0, 0.1, 3.5);
+  camera.lookAt(0, 0.1, 0);
+
+  let mouseX = 0, mouseY = 0;
+  window.addEventListener('mousemove', e => {
+    mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+    mouseY = -(e.clientY / window.innerHeight - 0.5) * 2;
+  });
+
+  // Lights — slightly cooler to match dragon mood
+  scene.add(new THREE.AmbientLight(0xe8fff0, 0.65));
+  const keyL = new THREE.DirectionalLight(0xfff8e0, 0.85);
+  keyL.position.set(0, 1.5, 3); scene.add(keyL);
+  const fillL = new THREE.DirectionalLight(0x80c0ff, 0.35);
+  fillL.position.set(-2, 0.5, 1); scene.add(fillL);
+  const rimL = new THREE.DirectionalLight(0x40ff80, 0.2);
+  rimL.position.set(0, -1, -2); scene.add(rimL);
+
+  // ── DRAGON HEAD ─────────────────────────────────────────────
+  const gradient = new Uint8Array([50, 120, 190, 255]);
+  const gradTex = new THREE.DataTexture(gradient, gradient.length, 1, THREE.LuminanceFormat);
+  gradTex.minFilter = THREE.NearestFilter; gradTex.magFilter = THREE.NearestFilter;
+  gradTex.needsUpdate = true;
+  function toonMat(c, map) {
+    const opts = { color: c, gradientMap: gradTex };
+    if (map) opts.map = map;
+    return new THREE.MeshToonMaterial(opts);
+  }
+
+  // ── Procedural scale texture ────────────────────────────────
+  // Draws overlapping semicircles in a fish-scale / roof-tile pattern
+  function makeScaleTexture(baseColor, edgeColor, highlightColor, size) {
+    const cv = document.createElement('canvas');
+    cv.width = size; cv.height = size;
+    const c = cv.getContext('2d');
+
+    // Fill base
+    c.fillStyle = baseColor;
+    c.fillRect(0, 0, size, size);
+
+    const cols = 8;
+    const rows = 12;
+    const sw = size / cols;       // scale width
+    const sh = size / rows * 1.4; // scale height — taller for overlap
+    const r = sw * 0.55;          // arc radius
+
+    for (let row = -1; row <= rows; row++) {
+      const offset = (row % 2 === 0) ? 0 : sw / 2;
+      c.globalAlpha = 0.5; // scale pattern at 50% opacity
+      for (let col = -1; col <= cols; col++) {
+        const cx = col * sw + offset;
+        const cy = row * (sh * 0.55);
+
+        // Scale body — slightly lighter fill
+        c.beginPath();
+        c.arc(cx, cy + r * 0.3, r, Math.PI, 0, false);
+        c.fillStyle = baseColor;
+        c.fill();
+
+        // Highlight at top of each scale
+        c.beginPath();
+        c.arc(cx, cy + r * 0.3, r * 0.7, Math.PI + 0.4, -0.4, false);
+        c.strokeStyle = highlightColor;
+        c.lineWidth = 1.2;
+        c.stroke();
+
+        // Scale outline — darker edge arc
+        c.beginPath();
+        c.arc(cx, cy + r * 0.3, r, Math.PI, 0, false);
+        c.strokeStyle = edgeColor;
+        c.lineWidth = 1.5;
+        c.stroke();
+      }
+    }
+
+    const tex = new THREE.CanvasTexture(cv);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(2, 2);
+    tex.minFilter = THREE.NearestFilter;
+    tex.magFilter = THREE.NearestFilter;
+    tex.generateMipmaps = false;
+    return tex;
+  }
+
+  // Green scale textures — main, dark, and light variants
+  const greenScaleTex = makeScaleTexture('#4a9a2a', '#2a6a1a', '#6ab840', 128);
+  const darkScaleTex  = makeScaleTexture('#2a6a1a', '#1a4a10', '#3a8a2a', 128);
+  const lightScaleTex = makeScaleTexture('#8ace5a', '#5a9a3a', '#a8e878', 128);
+  const bellyScaleTex = makeScaleTexture('#c8e8a0', '#98c870', '#d8f0b8', 128);
+
+  const GREEN      = 0xffffff; // white base — texture provides the color
+  const GREEN_DARK = 0xffffff;
+  const GREEN_LT   = 0xffffff;
+  const BELLY      = 0xffffff;
+  const HORN       = 0xd4a830;
+  const HORN_DARK  = 0x8a6a10;
+  const SPIKE      = 0x3a7a1a;
+  const NOSTRIL    = 0x1a3a10;
+  const DARK       = 0x1a2a10;
+
+  const scale = toonMat(GREEN, greenScaleTex);
+  const scaleDk = toonMat(GREEN_DARK, darkScaleTex);
+  const scaleLt = toonMat(GREEN_LT, lightScaleTex);
+  const bellyMat = toonMat(BELLY, bellyScaleTex);
+  const hornMat = toonMat(HORN);
+  const hornDkMat = toonMat(HORN_DARK);
+  const spikeMat = toonMat(SPIKE);
+  const darkMat = toonMat(DARK);
+  const nostrilMat = toonMat(NOSTRIL);
+  const yellowEye = toonMat(0xf0e040);
+  const fangMat = toonMat(0xffffff);
+
+  // Wrapper faces +X geometry toward camera at +Z
+  const wrapper = new THREE.Group();
+  wrapper.rotation.y = -Math.PI / 2;
+  scene.add(wrapper);
+
+  const headPivot = new THREE.Group();
+  wrapper.add(headPivot);
+
+  const S = 2.5;
+
+  // Main head — slightly elongated forward (dragon skulls are longer than cat)
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.26 * S, 20, 16), scale);
+  head.position.set(0.03 * S, 0, 0);
+  head.scale.set(1.1, 0.95, 1);
+  headPivot.add(head);
+
+  // Snout — elongated sphere protruding forward
+  const snout = new THREE.Mesh(new THREE.SphereGeometry(0.15 * S, 14, 10), scale);
+  snout.position.set(0.32 * S, -0.06 * S, 0);
+  snout.scale.set(1.5, 0.7, 0.85);
+  headPivot.add(snout);
+
+  // Snout ridge (slightly darker on top)
+  const snoutRidge = new THREE.Mesh(new THREE.BoxGeometry(0.2 * S, 0.02 * S, 0.08 * S), scaleDk);
+  snoutRidge.position.set(0.32 * S, 0.02 * S, 0);
+  headPivot.add(snoutRidge);
+
+  // Nostrils — two dark dots at the tip of the snout
+  const nostrilL = new THREE.Mesh(new THREE.SphereGeometry(0.02 * S, 6, 6), nostrilMat);
+  nostrilL.position.set(0.52 * S, -0.03 * S, 0.06 * S);
+  headPivot.add(nostrilL);
+  const nostrilR = new THREE.Mesh(new THREE.SphereGeometry(0.02 * S, 6, 6), nostrilMat);
+  nostrilR.position.set(0.52 * S, -0.03 * S, -0.06 * S);
+  headPivot.add(nostrilR);
+
+  // JAW PIVOT — hinge at back of mouth, rotates open
+  const jawPivot = new THREE.Group();
+  jawPivot.position.set(0.12 * S, -0.1 * S, 0);
+  headPivot.add(jawPivot);
+
+  // Lower jaw mesh (belly-colored)
+  const jaw = new THREE.Mesh(new THREE.SphereGeometry(0.12 * S, 14, 10), bellyMat);
+  jaw.position.set(0.15 * S, -0.06 * S, 0);
+  jaw.scale.set(1.3, 0.35, 0.7);
+  jawPivot.add(jaw);
+
+  // Mouth interior — dark, becomes visible when jaw opens
+  const mouthInside = new THREE.Mesh(new THREE.SphereGeometry(0.09 * S, 10, 8), darkMat);
+  mouthInside.position.set(0.2 * S, 0.02 * S, 0);
+  mouthInside.scale.set(1.0, 0.5, 0.7);
+  jawPivot.add(mouthInside);
+
+  // HORNS — swept-back cones (replace cat ears, same pivot system)
+  function makeHorn(zOff) {
+    const pivot = new THREE.Group();
+    pivot.position.set(-0.02 * S, 0.18 * S, zOff * S);
+    // Main horn
+    const horn = new THREE.Mesh(new THREE.ConeGeometry(0.06 * S, 0.35 * S, 6), hornMat);
+    horn.position.set(-0.08 * S, 0.12 * S, 0);
+    horn.rotation.z = 0.6; // swept back
+    horn.rotation.x = zOff > 0 ? -0.15 : 0.15; // slight outward angle
+    pivot.add(horn);
+    // Horn tip — darker
+    const tip = new THREE.Mesh(new THREE.ConeGeometry(0.025 * S, 0.1 * S, 5), hornDkMat);
+    tip.position.set(-0.16 * S, 0.25 * S, 0);
+    tip.rotation.z = 0.6;
+    pivot.add(tip);
+    return pivot;
+  }
+  const hornL = makeHorn(0.16);
+  const hornR = makeHorn(-0.16);
+  headPivot.add(hornL, hornR);
+
+  // BROW RIDGES — angular bumps above the eyes (very dragon)
+  function makeBrow(zOff) {
+    const brow = new THREE.Mesh(new THREE.BoxGeometry(0.12 * S, 0.04 * S, 0.06 * S), scaleDk);
+    brow.position.set(0.2 * S, 0.14 * S, zOff * S);
+    brow.rotation.z = -0.3; // both angled the same way — symmetrical scowl
+    return brow;
+  }
+  headPivot.add(makeBrow(0.12));
+  headPivot.add(makeBrow(-0.12));
+
+  // EYES — yellow with slit pupils, sized to stay below brows
+  function makeEye(zOff) {
+    const g = new THREE.Group();
+    g.position.set(0.22 * S, 0.05 * S, zOff * S);
+    // Yellow iris
+    const iris = new THREE.Mesh(new THREE.SphereGeometry(0.06 * S, 12, 10), yellowEye);
+    iris.scale.set(0.5, 0.85, 0.8);
+    g.add(iris);
+    // Slit pupil
+    const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.04 * S, 10, 8), darkMat);
+    pupil.position.set(0.02 * S, 0, 0);
+    pupil.scale.set(0.3, 1.0, 0.4);
+    g.add(pupil);
+    return g;
+  }
+  const eyeL = makeEye(0.13);
+  const eyeR = makeEye(-0.13);
+  headPivot.add(eyeL, eyeR);
+
+  // SPIKES — row of small cones down the center of the head
+  for (let i = 0; i < 5; i++) {
+    const spike = new THREE.Mesh(
+      new THREE.ConeGeometry(0.025 * S, (0.08 + i * 0.015) * S, 5),
+      spikeMat
+    );
+    spike.position.set((-0.05 - i * 0.08) * S, (0.24 - i * 0.02) * S, 0);
+    spike.rotation.z = 0.3 + i * 0.1;
+    headPivot.add(spike);
+  }
+
+  // Upper fangs — hang from the snout lip (stay with upper jaw when jaw opens)
+  const fangL = new THREE.Mesh(new THREE.ConeGeometry(0.022 * S, 0.095 * S, 4), fangMat);
+  fangL.position.set(0.06 * S, -0.108 * S, 0.052 * S);
+  fangL.rotation.z = Math.PI;
+  snout.add(fangL);
+  const fangR = new THREE.Mesh(new THREE.ConeGeometry(0.022 * S, 0.095 * S, 4), fangMat);
+  fangR.position.set(0.06 * S, -0.108 * S, -0.052 * S);
+  fangR.rotation.z = Math.PI;
+  snout.add(fangR);
+
+  // Lower teeth on the jaw — visible when the mouth opens
+  const jawToothL = new THREE.Mesh(new THREE.ConeGeometry(0.014 * S, 0.048 * S, 4), fangMat);
+  jawToothL.position.set(0.2 * S, -0.01 * S, 0.034 * S);
+  jawToothL.rotation.z = Math.PI - 0.35;
+  jawPivot.add(jawToothL);
+  const jawToothR = new THREE.Mesh(new THREE.ConeGeometry(0.014 * S, 0.048 * S, 4), fangMat);
+  jawToothR.position.set(0.2 * S, -0.01 * S, -0.034 * S);
+  jawToothR.rotation.z = Math.PI - 0.35;
+  jawPivot.add(jawToothR);
+
+  // Soft puff texture (overlapping blobs — not a flat square)
+  function makeSmokePuffTexture() {
+    const size = 64;
+    const cv = document.createElement('canvas');
+    cv.width = size;
+    cv.height = size;
+    const c = cv.getContext('2d');
+    function blob(cx, cy, r, peak) {
+      const g = c.createRadialGradient(cx, cy, 0, cx, cy, r);
+      g.addColorStop(0, 'rgba(255,255,255,' + peak + ')');
+      g.addColorStop(0.4, 'rgba(255,255,255,' + (peak * 0.4) + ')');
+      g.addColorStop(1, 'rgba(255,255,255,0)');
+      c.fillStyle = g;
+      c.beginPath();
+      c.arc(cx, cy, r, 0, Math.PI * 2);
+      c.fill();
+    }
+    blob(size * 0.5, size * 0.46, size * 0.4, 1);
+    blob(size * 0.36, size * 0.54, size * 0.26, 0.65);
+    blob(size * 0.64, size * 0.5, size * 0.24, 0.6);
+    blob(size * 0.5, size * 0.62, size * 0.2, 0.45);
+    const tex = new THREE.CanvasTexture(cv);
+    tex.minFilter = THREE.LinearFilter;
+    tex.magFilter = THREE.LinearFilter;
+    return tex;
+  }
+  const smokePuffTex = makeSmokePuffTexture();
+
+  // Mouth smoke (eating) — in front of snout, billows up around the sides
+  const smokeEmitter = new THREE.Group();
+  smokeEmitter.position.set(0.43 * S, -0.13 * S, 0);
+  headPivot.add(smokeEmitter);
+  const SMOKE_AMOUNT = 0.25;
+  const SMOKE_POOL = 7;
+  const smokePool = [];
+  for (let i = 0; i < SMOKE_POOL; i++) {
+    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: smokePuffTex,
+      color: 0xd8d8d0,
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+      depthTest: false,
+    }));
+    sprite.renderOrder = 4;
+    sprite.visible = false;
+    smokeEmitter.add(sprite);
+    smokePool.push({ sprite, life: 0, maxLife: 1, vx: 0, vy: 0, vz: 0, side: 1, aspectX: 1, aspectY: 1 });
+  }
+
+  function spawnSmokePuff(intensity) {
+    const slot = smokePool.find(p => p.life <= 0);
+    if (!slot) return;
+    const side = Math.random() < 0.5 ? -1 : 1;
+    slot.side = side;
+    slot.maxLife = 0.55 + Math.random() * 0.45;
+    slot.life = slot.maxLife;
+    slot.vx = (0.12 + Math.random() * 0.1) * intensity;
+    slot.vy = (0.38 + Math.random() * 0.32) * intensity;
+    slot.vz = side * (0.42 + Math.random() * 0.28) * intensity;
+    slot.sprite.position.set(
+      (Math.random() - 0.5) * 0.025 * S,
+      Math.random() * 0.018 * S,
+      side * (0.05 + Math.random() * 0.04) * S
+    );
+    slot.sprite.visible = true;
+    const s = (0.08 + Math.random() * 0.04) * S;
+    slot.aspectX = 0.85 + Math.random() * 0.35;
+    slot.aspectY = 0.8 + Math.random() * 0.4;
+    slot.sprite.scale.set(s * slot.aspectX, s * slot.aspectY, 1);
+    slot.sprite.material.opacity = 0.45 * intensity * SMOKE_AMOUNT;
+    slot.sprite.material.color.setHex(0xd8d8d0);
+  }
+
+  function updateSmoke(dt, eatW) {
+    const jawOpen = Math.max(0, -jawPivot.rotation.z);
+    smokeEmitter.position.set(
+      (0.41 + jawOpen * 0.05) * S,
+      (-0.13 - jawOpen * 0.05) * S,
+      0
+    );
+    if (eatW > 0.04) {
+      const chew = Math.abs(Math.sin(t * 5));
+      const burst = eatW * (0.35 + chew * 0.85);
+      if (Math.random() < burst * 5 * dt) spawnSmokePuff(burst);
+      if (chew > 0.85 && Math.random() < eatW * 0.09) spawnSmokePuff(burst);
+    }
+    for (const p of smokePool) {
+      if (p.life <= 0) continue;
+      p.life -= dt;
+      if (p.life <= 0) {
+        p.sprite.visible = false;
+        p.sprite.material.opacity = 0;
+        continue;
+      }
+      const u = p.life / p.maxLife;
+      p.sprite.position.x += p.vx * dt;
+      p.sprite.position.y += p.vy * dt;
+      p.sprite.position.z += p.vz * dt;
+      p.vy += 0.12 * dt;
+      p.vz += p.side * 0.18 * dt;
+      p.vx *= 1 - dt * 1.2;
+      const grow = 1 - u;
+      const sz = (0.09 + grow * 0.2) * S;
+      p.sprite.scale.set(sz * p.aspectX, sz * p.aspectY, 1);
+      p.sprite.material.opacity = Math.min(0.5, u * 0.55) * SMOKE_AMOUNT;
+      const g = 0.72 + grow * 0.18;
+      p.sprite.material.color.setRGB(g, g, g - 0.03);
+    }
+  }
+
+  // Neck
+  const neck = new THREE.Mesh(new THREE.SphereGeometry(0.22 * S, 14, 10), scale);
+  neck.position.set(-0.05 * S, -0.3 * S, 0);
+  neck.scale.set(0.9, 0.7, 0.8);
+  headPivot.add(neck);
+
+  // Neck belly stripe (lighter underside)
+  const neckBelly = new THREE.Mesh(new THREE.SphereGeometry(0.15 * S, 10, 8), bellyMat);
+  neckBelly.position.set(0.08 * S, -0.35 * S, 0);
+  neckBelly.scale.set(0.6, 0.5, 0.6);
+  headPivot.add(neckBelly);
+
+  // ── Post-process ────────────────────────────────────────────
+  const postScene = new THREE.Scene();
+  const orthoCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  const PALETTE = [
+    [0x1a/255,0x2a/255,0x10/255], // dark
+    [0x4a/255,0x9a/255,0x2a/255], // green
+    [0x2a/255,0x6a/255,0x1a/255], // dark green
+    [0x8a/255,0xce/255,0x5a/255], // light green
+    [0xc8/255,0xe8/255,0xa0/255], // belly
+    [0xd4/255,0xa8/255,0x30/255], // horn gold
+    [0x8a/255,0x6a/255,0x10/255], // horn dark
+    [0x3a/255,0x7a/255,0x1a/255], // spike
+    [0xf0/255,0xe0/255,0x40/255], // yellow eye
+    [0x0e/255,0x12/255,0x10/255], // bg
+    [0xff/255,0xff/255,0xff/255], // white
+    [0x1a/255,0x3a/255,0x10/255], // nostril
+  ];
+  const postMat = new THREE.ShaderMaterial({
+    uniforms: {
+      tDiffuse: { value: null },
+      uPalette: { value: new Float32Array(PALETTE.flat()) },
+      uPaletteSize: { value: PALETTE.length },
+      uUsePalette: { value: 1.0 },
+      uUseDither: { value: 0.0 },
+      uResolution: { value: new THREE.Vector2(1, 1) },
+    },
+    vertexShader: `varying vec2 vUv; void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}`,
+    fragmentShader: `
+      precision mediump float;
+      varying vec2 vUv;
+      uniform sampler2D tDiffuse;
+      uniform vec3 uPalette[12];
+      uniform int uPaletteSize;
+      uniform float uUsePalette, uUseDither;
+      uniform vec2 uResolution;
+      float bayer(vec2 p){
+        int x=int(mod(p.x,4.)),y=int(mod(p.y,4.)),i=x+y*4;
+        if(i==0)return 0.;if(i==1)return 8.;if(i==2)return 2.;if(i==3)return 10.;
+        if(i==4)return 12.;if(i==5)return 4.;if(i==6)return 14.;if(i==7)return 6.;
+        if(i==8)return 3.;if(i==9)return 11.;if(i==10)return 1.;if(i==11)return 9.;
+        if(i==12)return 15.;if(i==13)return 7.;if(i==14)return 13.;return 5.;
+      }
+      vec3 quantize(vec3 c){
+        float best=99.;vec3 bc=c;
+        for(int i=0;i<12;i++){if(i>=uPaletteSize)break;
+          vec3 d=c-uPalette[i];float dist=dot(d,d);
+          if(dist<best){best=dist;bc=uPalette[i];}}
+        return bc;
+      }
+      void main(){
+        vec3 c=texture2D(tDiffuse,vUv).rgb;
+        if(uUseDither>.5){float d=(bayer(vUv*uResolution/5.)/16.-.5)*.08;c+=vec3(d);}
+        if(uUsePalette>.5)c=quantize(c);
+        gl_FragColor=vec4(c,1.);
+      }`,
+  });
+  postScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), postMat));
+  const pxSizeEl = document.getElementById('pxSize');
+  const pxValEl = document.getElementById('pxVal');
+  makeRT();
+
+  
+  postMat.uniforms.uUseDither.value = 2;
+
+  // ═══════════════════════════════════════════════════════════
+  // STATES — same system, tuned for dragon expressions
+  // Horns replace ears but animate the same way (same pivot pattern)
+  // ═══════════════════════════════════════════════════════════
+  let currentState = 'idle', prevState = 'idle', blendT = 1;
+  const BT = 0.35;
+
+  function reset() {
+    headPivot.position.set(0, 0, 0);
+    headPivot.rotation.set(0, 0, 0);
+    head.scale.set(1.1, 0.95, 1);
+    hornL.rotation.set(0, 0, 0); hornR.rotation.set(0, 0, 0);
+    eyeL.scale.set(1, 1, 1); eyeR.scale.set(1, 1, 1);
+    jawPivot.rotation.set(0, 0, 0);
+    fangL.scale.set(1, 1, 1); fangR.scale.set(1, 1, 1);
+    jawToothL.scale.set(1, 1, 1); jawToothR.scale.set(1, 1, 1);
+    snout.scale.set(1.5, 0.7, 0.85);
+  }
+
+  const states = {
+    idle: (t, dt, w) => {
+      // Deep reptilian breathing — slower and deeper than cat
+      headPivot.position.y += Math.sin(t * 1.0) * 0.02 * w;
+      // Nostrils flare with breath — subtle snout pulse
+      snout.scale.y = 0.7 + Math.sin(t * 1.0) * 0.03 * w;
+      // Occasional horn twitch
+      const tw = Math.max(0, Math.sin(t * 0.5) - 0.92) * 12;
+      hornR.rotation.x += tw * 0.1 * w;
+    },
+
+    happy: (t, dt, w) => {
+      headPivot.position.y += Math.abs(Math.sin(t * 3)) * 0.025 * w;
+      // Squinted pleased eyes
+      eyeL.scale.y = 1 - 0.5 * w; eyeR.scale.y = 1 - 0.5 * w;
+      // Horns relax outward
+      hornL.rotation.z += -0.1 * w; hornR.rotation.z += 0.1 * w;
+      // Slight happy tilt
+      headPivot.rotation.z += Math.sin(t * 1.8) * 0.07 * w;
+      // Fangs show more (pleased grin)
+      fangL.scale.y = 1 + 0.5 * w; fangR.scale.y = 1 + 0.5 * w;
+    },
+
+    listening: (t, dt, w) => {
+      // Horns perk up/forward (like ears tracking sound)
+      hornL.rotation.z += -0.15 * w; hornR.rotation.z += 0.15 * w;
+      hornL.rotation.x += Math.sin(t * 1.5) * 0.1 * w;
+      hornR.rotation.x += Math.sin(t * 1.5 + 0.3) * 0.1 * w;
+      // Eyes slightly wide
+      eyeL.scale.y = 1 + 0.08 * w; eyeR.scale.y = 1 + 0.08 * w;
+      // Head tilts
+      headPivot.rotation.z += 0.1 * w;
+      headPivot.rotation.y += Math.sin(t * 0.6) * 0.06 * w;
+    },
+
+    thinking: (t, dt, w) => {
+      // Head tipped up, contemplative
+      headPivot.rotation.x += 0.15 * w;
+      headPivot.rotation.z += -0.12 * w;
+      headPivot.position.y += 0.03 * w;
+      // One horn twitches
+      hornR.rotation.x += Math.sin(t * 1.8) * 0.08 * w;
+      // Slow drift
+      headPivot.rotation.y += Math.sin(t * 0.4) * 0.15 * w;
+      // Nostrils flare slowly (deep thought)
+      snout.scale.y = 0.7 + Math.sin(t * 0.6) * 0.04 * w;
+    },
+
+    talking: (t, dt, w) => {
+      // Jaw opens and closes — actual rotation at the hinge
+      const mAmt = Math.sin(t * 7) * 0.5 + 0.5;
+      jawPivot.rotation.z += -mAmt * 0.35 * w;
+      // Lower teeth pop as jaw drops
+      jawToothL.scale.y = 1 + mAmt * 0.35 * w;
+      jawToothR.scale.y = 1 + mAmt * 0.35 * w;
+      // Speech nod — slower and more deliberate than cat
+      headPivot.rotation.x += Math.sin(t * 3.5) * 0.06 * w;
+      headPivot.position.y += Math.sin(t * 3.5) * 0.012 * w;
+      // Horns relaxed
+      hornL.rotation.x += 0.05 * w; hornR.rotation.x += 0.05 * w;
+      // Emphasis tilts
+      headPivot.rotation.z += Math.sin(t * 1.0) * 0.08 * w;
+    },
+
+    confused: (t, dt, w) => {
+      // Big head tilt
+      headPivot.rotation.z += 0.35 * w;
+      headPivot.rotation.y += Math.sin(t * 1.2) * 0.12 * w;
+      // Horns asymmetric
+      hornL.rotation.z += -0.15 * w; hornL.rotation.x += -0.1 * w;
+      hornR.rotation.z += 0.3 * w;
+      // Wide eyes — pupils dilate
+      eyeL.scale.y = 1 + 0.1 * w; eyeR.scale.y = 1 + 0.1 * w;
+    },
+
+    alert: (t, dt, w) => {
+      // Eyes wide — predator alert
+      eyeL.scale.y = 1 + 0.12 * w; eyeR.scale.y = 1 + 0.12 * w;
+      // Horns up and rigid
+      hornL.rotation.z += -0.2 * w; hornR.rotation.z += 0.2 * w;
+      // Head scanning
+      headPivot.rotation.y += Math.sin(t * 1.2) * 0.3 * w;
+      // Body tense
+      headPivot.position.y = 0.02 * w;
+      // Nostrils flare
+      snout.scale.y = 0.7 + 0.08 * w;
+      snout.scale.z = 0.85 + 0.05 * w;
+    },
+
+    sleepy: (t, dt, w) => {
+      // Eyes drooping
+      eyeL.scale.y = 1 - (0.5 + Math.sin(t * 0.5) * 0.35) * w;
+      eyeR.scale.y = 1 - (0.5 + Math.sin(t * 0.5) * 0.35) * w;
+      // Head droops
+      headPivot.rotation.x += -0.15 * w;
+      headPivot.position.y += -0.04 * w;
+      // Nodding off
+      headPivot.rotation.x += Math.sin(t * 0.3) * 0.1 * w;
+      // Horns relax down
+      hornL.rotation.z += 0.2 * w; hornR.rotation.z += -0.2 * w;
+      hornL.rotation.x += 0.15 * w; hornR.rotation.x += 0.15 * w;
+      // Slow deep breathing
+      snout.scale.y = 0.7 + Math.sin(t * 0.4) * 0.04 * w;
+    },
+
+    attitude: (t, dt, w) => {
+      // Head high, imperious dragon look
+      headPivot.position.y += 0.05 * w;
+      headPivot.rotation.z += 0.2 * w;
+      headPivot.rotation.y += -0.15 * w;
+      // Narrowed disdainful eyes
+      eyeL.scale.y = 1 - 0.4 * w; eyeR.scale.y = 1 - 0.4 * w;
+      // Horns held high
+      hornL.rotation.z += -0.15 * w; hornR.rotation.z += 0.15 * w;
+      // Subtle sway
+      headPivot.rotation.z += Math.sin(t * 1.0) * 0.04 * w;
+      // Nostrils slightly flared — haughty
+      snout.scale.y = 0.7 + 0.04 * w;
+    },
+
+    fear: (t, dt, w) => {
+      // Pulled back
+      headPivot.position.y += -0.05 * w;
+      headPivot.position.z += -0.06 * w;
+      // Trembling
+      headPivot.position.x += Math.sin(t * 20) * 0.01 * w;
+      // Horns flat back
+      hornL.rotation.z += 0.5 * w; hornR.rotation.z += -0.5 * w;
+      hornL.rotation.x += 0.3 * w; hornR.rotation.x += 0.3 * w;
+      // Eyes wide — slitted pupils contract
+      eyeL.scale.y = 1 + 0.15 * w; eyeR.scale.y = 1 + 0.15 * w;
+    },
+
+    laughing: (t, dt, w) => {
+      // Jaw wide open — dragon belly laugh
+      jawPivot.rotation.z += -0.5 * w;
+      // Jaw bounces with each laugh pulse
+      jawPivot.rotation.z += Math.sin(t * 5) * 0.1 * w;
+      // Fangs fully exposed
+      fangL.scale.y = 1 + 0.6 * w; fangR.scale.y = 1 + 0.6 * w;
+      // Head rocking
+      headPivot.rotation.x += 0.12 * w + Math.sin(t * 5) * 0.08 * w;
+      headPivot.position.y += Math.abs(Math.sin(t * 5)) * 0.025 * w;
+      // Eyes crinkled
+      eyeL.scale.y = 1 - 0.6 * w; eyeR.scale.y = 1 - 0.6 * w;
+      // Horns vibrate from the laughter
+      hornL.rotation.x += Math.sin(t * 10) * 0.05 * w;
+      hornR.rotation.x += Math.sin(t * 10 + 1) * 0.05 * w;
+      // Nostrils flare
+      snout.scale.y = 0.7 + 0.06 * w;
+    },
+
+    annoyed: (t, dt, w) => {
+      // Narrow eyes
+      eyeL.scale.y = 1 - 0.5 * w; eyeR.scale.y = 1 - 0.5 * w;
+      // Horns flat — irritated
+      hornL.rotation.z += 0.35 * w; hornR.rotation.z += -0.35 * w;
+      // Head turned away
+      headPivot.rotation.y += 0.2 * w;
+      // Slow threatening blink
+      const sb = Math.max(0, Math.sin(t * 0.2) - 0.88) * 8;
+      eyeL.scale.y -= sb * 0.4 * w;
+      eyeR.scale.y -= sb * 0.4 * w;
+      // Nostrils flared — steaming
+      snout.scale.y = 0.7 + 0.06 * w;
+      snout.scale.z = 0.85 + 0.04 * w;
+    },
+
+    hungry: (t, dt, w) => {
+      headPivot.rotation.x += 0.14 * w;
+      headPivot.position.y += Math.sin(t * 2.5) * 0.014 * w;
+      eyeL.scale.y = 1 + 0.22 * w; eyeR.scale.y = 1 + 0.22 * w;
+      jawPivot.rotation.z += -0.15 * w;
+      hornL.rotation.z += -0.1 * w; hornR.rotation.z += 0.1 * w;
+      headPivot.rotation.z += Math.sin(t * 3) * 0.05 * w;
+      snout.scale.y = 0.7 + 0.05 * w;
+    },
+
+    eating: (t, dt, w) => {
+      const chew = Math.abs(Math.sin(t * 5));
+      jawPivot.rotation.z += (-0.2 - chew * 0.35) * w;
+      jawToothL.scale.y = 1 + chew * 0.4 * w; jawToothR.scale.y = 1 + chew * 0.4 * w;
+      headPivot.rotation.x += 0.06 * w + chew * 0.05 * w;
+      eyeL.scale.y = 1 - 0.35 * w; eyeR.scale.y = 1 - 0.35 * w;
+      hornL.rotation.x += Math.sin(t * 4) * 0.03 * w;
+      hornR.rotation.x += Math.sin(t * 4 + 0.5) * 0.03 * w;
+    },
+
+    comfort: (t, dt, w) => {
+      headPivot.rotation.z += 0.08 * w;
+      headPivot.position.y += Math.sin(t * 1.2) * 0.012 * w;
+      eyeL.scale.y = 1 - (0.35 + Math.max(0, Math.sin(t * 0.8) - 0.85) * 3) * w;
+      eyeR.scale.y = 1 - (0.35 + Math.max(0, Math.sin(t * 0.8) - 0.85) * 3) * w;
+      hornL.rotation.x += 0.12 * w; hornR.rotation.x += 0.12 * w;
+      jawPivot.rotation.z += -0.08 * w;
+      snout.scale.y = 0.7 + Math.sin(t * 1.5) * 0.03 * w;
+    },
+  };
+
+  window.addEventListener('message', (e) => {
+    if (!e.data) return;
+    if (e.data.type === 'companion:update') {
+      if (e.data.state) applyCompanionState(e.data.state);
+      if (e.data.vitals) applyCompanionVitals(e.data.vitals);
+      return;
+    }
+    if (e.data.type === 'companion:state' && states[e.data.state]) {
+      applyCompanionState(e.data.state);
+    }
+    if (e.data.type === 'companion:vitals') {
+      applyCompanionVitals(e.data.vitals);
+    }
+  });
+
+  const clock = new THREE.Clock();
+  let t = 0;
+  resize();
+
+  function tick() {
+    const dt = Math.min(0.05, clock.getDelta());
+    t += dt;
+    blendT = Math.min(1, blendT + dt / BT);
+    const w1 = blendT, w0 = 1 - blendT;
+
+    reset();
+    if (w0 > .001) states[prevState](t, dt, w0);
+    states[currentState](t, dt, w1);
+
+    // Mouse parallax
+    headPivot.rotation.y += mouseX * 0.2;
+    headPivot.rotation.x += mouseY * 0.1;
+
+    let eatW = 0;
+    if (currentState === 'eating') eatW += w1;
+    if (prevState === 'eating') eatW += w0;
+    updateSmoke(dt, Math.min(1, eatW));
+
+    renderer.setRenderTarget(renderTarget);
+    renderer.render(scene, camera);
+    renderer.setRenderTarget(null);
+    renderer.render(postScene, orthoCam);
+    requestAnimationFrame(tick);
+  }
+  tick();
+  if (typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(() => resize()).observe(cvs.parentElement || cvs);
+  }
+  window.addEventListener('resize', resize);
+})();
+</script>
+</body>
+</html>

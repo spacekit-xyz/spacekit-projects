@@ -1,0 +1,822 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>DRAGON LAYERZ — Descent to the Cosmic Gate</title>
+<style>
+  /* Local pixel stack — no CDN (works offline / Desktop cold start). */
+  :root{
+    --bg:#04060d; --ink:#e9f7ff;
+    --accent:#39f0c8; --accent2:#ff4d7e; --haze:#0a1330; --gem:#9fe;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:#000;overflow:hidden;-webkit-tap-highlight-color:transparent}
+  body{
+    display:flex;align-items:center;justify-content:center;
+    font-family:"Courier New",Courier,ui-monospace,Menlo,Consolas,monospace;
+    font-weight:700;letter-spacing:0.04em;
+    color:var(--ink);
+    background:radial-gradient(120% 90% at 50% 0%, #0a1226 0%, #05070f 55%, #000 100%);
+    user-select:none;
+  }
+  #cabinet{
+    position:relative;width:min(96vw, 560px);aspect-ratio:400/640;
+    border-radius:18px;padding:14px;background:linear-gradient(180deg,#141a2e,#080b15);
+    box-shadow:0 0 0 2px #1c2742,0 0 0 6px #060912,0 24px 60px -10px #000,inset 0 0 60px -10px #000;
+  }
+  #cabinet::before{
+    content:"◆ DRAGON LAYERZ ◆";position:absolute;top:-30px;left:50%;transform:translateX(-50%);
+    font-size:11px;letter-spacing:2px;color:var(--accent);text-shadow:0 0 12px var(--accent);
+    white-space:nowrap;opacity:.9;
+  }
+  #screen{
+    position:relative;width:100%;height:100%;border-radius:12px;overflow:hidden;background:#04060d;
+    box-shadow:inset 0 0 90px -20px var(--haze), inset 0 0 0 1px #1b2440;transform:translateZ(0);
+  }
+  svg{display:block;width:100%;height:100%}
+
+  #crt{position:absolute;inset:0;pointer-events:none;z-index:40;border-radius:12px;
+    background:repeating-linear-gradient(0deg, rgba(0,0,0,.16) 0 1px, transparent 1px 3px);mix-blend-mode:multiply}
+  #vignette{position:absolute;inset:0;pointer-events:none;z-index:41;border-radius:12px;
+    box-shadow:inset 0 0 120px -20px #000, inset 0 0 40px -10px #000;
+    background:radial-gradient(120% 100% at 50% 50%, transparent 60%, rgba(0,0,0,.55) 100%)}
+
+  /* ---------- HUD ---------- */
+  #hud{position:absolute;inset:0;z-index:30;pointer-events:none;font-size:8px;letter-spacing:1px}
+  #hud .row{position:absolute;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:0 9px}
+  #hud .r1{top:6px}
+  #hud .r2{top:21px;font-size:7px;opacity:.92}
+  #lives{display:flex;gap:3px;align-items:center;min-width:74px}
+  #lives svg{width:12px;height:12px}
+  #layer{color:var(--ink);opacity:.85;text-align:center;flex:1}
+  #score{color:var(--accent);text-shadow:0 0 8px var(--accent);text-align:right;min-width:74px}
+  #pilot{color:var(--accent2);text-shadow:0 0 7px var(--accent2);min-width:74px;white-space:nowrap;overflow:hidden;max-width:96px}
+  #hiwrap{color:var(--ink);opacity:.8;text-align:right;min-width:74px}
+  #pwrwrap{flex:1;text-align:center;color:var(--ink);opacity:.9}
+  #pwr{color:var(--accent);letter-spacing:0;text-shadow:0 0 6px var(--accent)}
+  #pwr .off{color:#2a3658;text-shadow:none}
+
+  #gems{position:absolute;left:0;right:0;bottom:0;display:flex;gap:3px;justify-content:center;flex-wrap:wrap;padding:6px 8px}
+  #gems .g{width:13px;height:13px;opacity:.22;transition:opacity .25s,filter .25s,transform .25s}
+  #gems .g.on{opacity:1;filter:drop-shadow(0 0 5px currentColor);transform:translateY(-1px)}
+
+  #bossbar{position:absolute;left:8%;right:8%;top:40px;height:11px;z-index:31;
+    border:1px solid var(--accent2);border-radius:6px;overflow:hidden;background:rgba(0,0,0,.5);display:none}
+  #bossbar.show{display:block}
+  #bossfill{height:100%;width:100%;background:linear-gradient(90deg,var(--accent2),#ffd166);
+    box-shadow:0 0 10px var(--accent2);transition:width .1s linear}
+  #bossfill.armored{background:linear-gradient(90deg,#8893a8,#e8eef7);box-shadow:0 0 10px #aab6cc}
+  #bossbar.armored{border-color:#cfd9ea}
+  #bossname{position:absolute;left:8%;top:28px;z-index:31;font-size:7px;
+    color:var(--accent2);text-shadow:0 0 8px var(--accent2);display:none;letter-spacing:1px}
+  #bossname.show{display:block}
+  #bossname .arm{color:#dbe3f0}
+
+  /* ---------- overlays ---------- */
+  #ovl{position:absolute;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:24px 20px;gap:12px;
+    background:radial-gradient(120% 100% at 50% 35%, rgba(6,10,22,.74), rgba(2,3,8,.95));backdrop-filter:blur(1px)}
+  #ovl.hide{display:none}
+  #ovl h1{font-size:20px;line-height:1.5;color:var(--accent);text-shadow:0 0 18px var(--accent),0 0 4px #fff}
+  #ovl h2{font-size:12px;color:var(--accent2);text-shadow:0 0 12px var(--accent2);line-height:1.7}
+  #ovl p{font-size:8px;line-height:2;color:var(--ink);max-width:330px;opacity:.92}
+  #ovl .small{font-size:7px;opacity:.72;line-height:2.1}
+  #ovl .blink{animation:bk 1s steps(2,end) infinite;font-size:9px;color:#fff}
+  @keyframes bk{50%{opacity:.15}}
+  #ovl .gemrow{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;max-width:340px}
+  #ovl .gemrow svg{width:20px;height:20px;filter:drop-shadow(0 0 7px currentColor)}
+  .key{display:inline-block;border:1px solid var(--accent);border-radius:4px;padding:3px 5px;color:var(--accent);font-size:7px;margin:0 1px}
+
+  #pname{font-family:inherit;font-size:11px;text-align:center;letter-spacing:2px;text-transform:uppercase;
+    color:#fff;background:#070b16;border:2px solid var(--accent);border-radius:8px;padding:10px 12px;width:200px;
+    outline:none;box-shadow:0 0 14px -4px var(--accent);caret-color:var(--accent)}
+  #pname:focus{border-color:var(--accent2);box-shadow:0 0 16px -2px var(--accent2)}
+  .btn{pointer-events:auto;cursor:pointer;font-family:inherit;font-size:9px;letter-spacing:1px;color:#04060d;
+    background:var(--accent);border:none;border-radius:8px;padding:11px 18px;box-shadow:0 0 16px -3px var(--accent);text-shadow:none}
+  .btn:active{transform:translateY(1px)}
+  .board{font-size:7px;line-height:2.1;opacity:.92;min-width:200px}
+  .board .me{color:var(--accent);text-shadow:0 0 8px var(--accent)}
+  .board .rank{color:var(--accent2)}
+
+  #pausetag{position:absolute;z-index:46;inset:0;display:none;align-items:center;justify-content:center;
+    font-size:14px;color:#fff;text-shadow:0 0 14px var(--accent);background:rgba(0,0,0,.45)}
+  #pausetag.show{display:flex}
+  #mute{position:absolute;right:8px;bottom:24px;z-index:45;pointer-events:auto;font-size:7px;color:var(--ink);
+    opacity:.5;cursor:pointer;border:1px solid #2a3658;border-radius:4px;padding:3px 5px;background:rgba(0,0,0,.3)}
+  #flash{position:absolute;inset:0;z-index:35;pointer-events:none;background:#fff;opacity:0}
+</style>
+</head>
+<body>
+<div id="cabinet">
+  <div id="screen">
+    <svg id="stage" viewBox="0 0 400 640" preserveAspectRatio="xMidYMid slice" aria-label="Dragon Layerz game">
+      <defs>
+        <radialGradient id="bgGrad" cx="50%" cy="14%" r="120%">
+          <stop offset="0%" stop-color="var(--haze)"/><stop offset="60%" stop-color="#05070f"/><stop offset="100%" stop-color="#02030a"/>
+        </radialGradient>
+        <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="softglow" x="-80%" y="-80%" width="260%" height="260%">
+          <feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <pattern id="starsFar" width="120" height="120" patternUnits="userSpaceOnUse">
+          <circle cx="14" cy="20" r="0.8" fill="#9fb6ff" opacity=".55"/><circle cx="70" cy="60" r="0.6" fill="#cfe0ff" opacity=".4"/>
+          <circle cx="100" cy="100" r="0.9" fill="#fff" opacity=".5"/><circle cx="40" cy="95" r="0.5" fill="#8aa0ff" opacity=".35"/>
+        </pattern>
+        <pattern id="starsNear" width="160" height="160" patternUnits="userSpaceOnUse">
+          <circle cx="30" cy="40" r="1.3" fill="#ffffff" opacity=".85"/><circle cx="120" cy="110" r="1.1" fill="var(--accent)" opacity=".7"/>
+          <circle cx="90" cy="30" r="0.9" fill="#bfe9ff" opacity=".6"/>
+        </pattern>
+
+        <!-- HERO -->
+        <symbol id="sp_hero" viewBox="-16 -16 32 32"><g filter="url(#glow)">
+          <polygon points="0,-14 6,6 0,2 -6,6" fill="currentColor"/>
+          <polygon points="0,-14 3,-2 0,0 -3,-2" fill="#fff" opacity=".9"/>
+          <polygon points="-6,6 -13,12 -4,7" fill="var(--accent2)"/><polygon points="6,6 13,12 4,7" fill="var(--accent2)"/>
+          <circle cx="0" cy="-3" r="2.4" fill="#fff"/><polygon points="-3,7 0,15 3,7" fill="#ffd166" opacity=".95"/>
+        </g></symbol>
+
+        <!-- WYRMLING -->
+        <symbol id="sp_wyrm" viewBox="-12 -12 24 24"><g filter="url(#glow)">
+          <polygon points="-9,-4 0,-7 9,-4 4,-3 0,-1 -4,-3" fill="currentColor"/>
+          <polygon points="0,-7 -3,4 0,9 3,4" fill="currentColor"/>
+          <polygon points="0,2 -2,8 0,11 2,8" fill="var(--accent2)" opacity=".95"/>
+          <circle cx="-2.2" cy="-4" r="1.1" fill="#fff"/><circle cx="2.2" cy="-4" r="1.1" fill="#fff"/>
+          <circle cx="-2.2" cy="-4" r=".5" fill="#000"/><circle cx="2.2" cy="-4" r=".5" fill="#000"/>
+        </g></symbol>
+
+        <!-- POWER ORB -->
+        <symbol id="sp_power" viewBox="-10 -10 20 20"><g filter="url(#glow)">
+          <circle r="8" fill="none" stroke="var(--accent)" stroke-width="1.4"/>
+          <circle r="5" fill="var(--accent)" opacity=".25"/>
+          <polygon points="-1.5,-5 -1.5,1 -4,1 0,6 4,1 1.5,1 1.5,-5" fill="#fff"/>
+        </g></symbol>
+
+        <!-- BOSS TIER 1: basic dragon -->
+        <symbol id="sp_boss1" viewBox="-40 -36 80 72"><g filter="url(#softglow)">
+          <polygon points="-36,2 -10,-10 -16,10 -6,4" fill="var(--accent2)"/><polygon points="36,2 10,-10 16,10 6,4" fill="var(--accent2)"/>
+          <ellipse cx="0" cy="2" rx="18" ry="22" fill="currentColor"/><polygon points="0,18 -8,30 0,26 8,30" fill="currentColor"/>
+          <polygon points="-8,-20 -12,-32 -4,-22" fill="#ffd166"/><polygon points="8,-20 12,-32 4,-22" fill="#ffd166"/>
+          <ellipse cx="0" cy="-8" rx="13" ry="13" fill="currentColor"/>
+          <circle cx="-6" cy="-9" r="3.4" fill="#fff"/><circle cx="6" cy="-9" r="3.4" fill="#fff"/>
+          <circle cx="-6" cy="-9" r="1.6" fill="#ff2a2a"/><circle cx="6" cy="-9" r="1.6" fill="#ff2a2a"/>
+          <polygon points="-5,-1 0,5 5,-1 0,1" fill="#180000"/>
+        </g></symbol>
+
+        <!-- BOSS TIER 2: armored -->
+        <symbol id="sp_boss2" viewBox="-44 -40 88 80"><g filter="url(#softglow)">
+          <polygon points="-40,2 -12,-12 -18,12 -7,5" fill="var(--accent2)"/><polygon points="40,2 12,-12 18,12 7,5" fill="var(--accent2)"/>
+          <ellipse cx="0" cy="3" rx="19" ry="24" fill="currentColor"/><polygon points="0,20 -9,33 0,28 9,33" fill="currentColor"/>
+          <polygon points="-14,-2 14,-2 11,16 -11,16" fill="#9aa6bd"/><polygon points="-14,-2 14,-2 12,3 -12,3" fill="#cdd7e8"/>
+          <rect x="-18" y="6" width="7" height="10" rx="2" fill="#8b97ad"/><rect x="11" y="6" width="7" height="10" rx="2" fill="#8b97ad"/>
+          <ellipse cx="0" cy="-9" rx="14" ry="13" fill="currentColor"/>
+          <polygon points="-14,-15 14,-15 9,-6 -9,-6" fill="#aeb9cf"/>
+          <polygon points="-10,-22 -15,-36 -5,-24" fill="#ffd166"/><polygon points="10,-22 15,-36 5,-24" fill="#ffd166"/>
+          <polygon points="-3,-22 -6,-34 0,-24 6,-34 3,-22" fill="#cdd7e8"/>
+          <circle cx="-6" cy="-9" r="3.2" fill="#fff"/><circle cx="6" cy="-9" r="3.2" fill="#fff"/>
+          <circle cx="-6" cy="-9" r="1.6" fill="#ff2a2a"/><circle cx="6" cy="-9" r="1.6" fill="#ff2a2a"/>
+          <polygon points="-5,-2 0,5 5,-2 0,1" fill="#180000"/>
+        </g></symbol>
+
+        <!-- BOSS TIER 3: spiked warlord -->
+        <symbol id="sp_boss3" viewBox="-48 -46 96 92"><g filter="url(#softglow)">
+          <polygon points="-46,4 -14,-16 -22,16 -8,7" fill="var(--accent2)"/><polygon points="46,4 14,-16 22,16 8,7" fill="var(--accent2)"/>
+          <polygon points="-12,30 -16,12 -8,22" fill="#7e8aa0"/><polygon points="12,30 16,12 8,22" fill="#7e8aa0"/>
+          <ellipse cx="0" cy="4" rx="21" ry="26" fill="currentColor"/><polygon points="0,24 -11,40 0,33 11,40" fill="currentColor"/>
+          <polygon points="-17,-4 17,-4 13,20 -13,20" fill="#8893a8"/>
+          <polygon points="-17,-4 17,-4 14,2 -14,2" fill="#d4ddec"/>
+          <polygon points="-13,6 13,6 10,13 -10,13" fill="#aab6cc"/>
+          <rect x="-22" y="4" width="9" height="13" rx="2" fill="#79839a"/><rect x="13" y="4" width="9" height="13" rx="2" fill="#79839a"/>
+          <polygon points="-16,-6 -20,-14 -12,-9" fill="#cdd7e8"/><polygon points="16,-6 20,-14 12,-9" fill="#cdd7e8"/>
+          <ellipse cx="0" cy="-10" rx="15" ry="14" fill="currentColor"/>
+          <polygon points="-15,-17 15,-17 10,-7 -10,-7" fill="#b7c2d8"/>
+          <polygon points="-12,-24 -18,-40 -6,-26" fill="#ffd166"/><polygon points="12,-24 18,-40 6,-26" fill="#ffd166"/>
+          <polygon points="-5,-26 0,-44 5,-26 0,-30" fill="#ffd166"/>
+          <circle cx="-6.5" cy="-10" r="3.4" fill="#fff"/><circle cx="6.5" cy="-10" r="3.4" fill="#fff"/>
+          <circle cx="-6.5" cy="-10" r="1.8" fill="#ff1f1f"/><circle cx="6.5" cy="-10" r="1.8" fill="#ff1f1f"/>
+          <polygon points="-6,-2 0,7 6,-2 0,2" fill="#100000"/>
+          <polygon points="-3,4 -2,9 -1,4" fill="#fff"/><polygon points="3,4 2,9 1,4" fill="#fff"/>
+        </g></symbol>
+
+        <!-- SOVEREIGN final -->
+        <symbol id="sp_sovereign" viewBox="-54 -52 108 104"><g filter="url(#softglow)">
+          <polygon points="-50,4 -14,-18 -24,18 -9,8" fill="var(--accent)"/><polygon points="50,4 14,-18 24,18 9,8" fill="var(--accent)"/>
+          <polygon points="-14,34 -18,14 -9,25" fill="#9fffe0"/><polygon points="14,34 18,14 9,25" fill="#9fffe0"/>
+          <ellipse cx="0" cy="5" rx="24" ry="30" fill="currentColor"/><polygon points="0,28 -12,46 0,38 12,46" fill="currentColor"/>
+          <polygon points="-19,-4 19,-4 15,24 -15,24" fill="#7f8ba2"/><polygon points="-19,-4 19,-4 16,3 -16,3" fill="#dfe8f6"/>
+          <polygon points="-15,8 15,8 12,16 -12,16" fill="#aeb9cf"/>
+          <ellipse cx="0" cy="-13" rx="17" ry="16" fill="currentColor"/>
+          <polygon points="-17,-20 17,-20 11,-9 -11,-9" fill="#c3cde2"/>
+          <polygon points="-17,-26 -24,-46 -9,-28" fill="#ffd166"/><polygon points="17,-26 24,-46 9,-28" fill="#ffd166"/>
+          <polygon points="-9,-30 -3,-50 0,-32 3,-50 9,-30 0,-26" fill="#ffd166"/>
+          <circle cx="-7" cy="-13" r="4.4" fill="#fff"/><circle cx="7" cy="-13" r="4.4" fill="#fff"/>
+          <circle cx="-7" cy="-13" r="2.2" fill="#39f0ff"/><circle cx="7" cy="-13" r="2.2" fill="#39f0ff"/>
+          <polygon points="-7,-3 0,7 7,-3 0,2" fill="#001018"/>
+          <polygon points="-4,4 -3,11 -2,4" fill="#fff"/><polygon points="4,4 3,11 2,4" fill="#fff"/>
+        </g></symbol>
+
+        <symbol id="sp_pbolt" viewBox="-4 -8 8 16"><g filter="url(#glow)">
+          <polygon points="0,-8 3,4 0,2 -3,4" fill="#fff"/><polygon points="0,-6 1.6,3 0,1.6 -1.6,3" fill="var(--accent)"/>
+        </g></symbol>
+        <symbol id="sp_ember" viewBox="-5 -5 10 10"><g filter="url(#glow)">
+          <circle r="3.6" fill="var(--accent2)"/><circle r="1.8" fill="#ffd166"/>
+        </g></symbol>
+        <symbol id="sp_jewel" viewBox="-12 -14 24 28"><g filter="url(#glow)" fill="currentColor">
+          <polygon points="0,-13 9,-4 0,13 -9,-4"/><polygon points="0,-13 9,-4 0,-3" fill="#fff" opacity=".55"/>
+          <polygon points="0,-13 -9,-4 0,-3" fill="#fff" opacity=".25"/><polygon points="-9,-4 0,-3 0,13" fill="#000" opacity=".25"/>
+        </g></symbol>
+      </defs>
+
+      <rect id="bg" x="-40" y="-40" width="480" height="720" fill="url(#bgGrad)"/>
+      <rect id="planet" x="-100" y="430" width="600" height="600" rx="300" fill="var(--haze)" opacity=".55" filter="url(#softglow)"/>
+      <rect id="layerFar"  x="-40" y="-40" width="480" height="720" fill="url(#starsFar)"/>
+      <rect id="layerNear" x="-40" y="-40" width="480" height="720" fill="url(#starsNear)"/>
+      <g id="hazardLayer"></g>
+      <g id="fxLayer"></g>
+      <g id="enemyBulletLayer"></g>
+      <g id="enemyLayer"></g>
+      <g id="auraLayer"></g>
+      <g id="bossLayer"></g>
+      <g id="powerLayer"></g>
+      <g id="bulletLayer"></g>
+      <use id="player" href="#sp_hero" x="-16" y="-16" width="32" height="32" style="color:#bfeaff"/>
+    </svg>
+
+    <div id="bossname"></div>
+    <div id="bossbar"><div id="bossfill"></div></div>
+
+    <div id="hud">
+      <div class="row r1">
+        <div id="lives"></div>
+        <div id="layer">LAYER 1/11</div>
+        <div id="score">000000</div>
+      </div>
+      <div class="row r2">
+        <div id="pilot">PLAYER ONE</div>
+        <div id="pwrwrap">PWR <span id="pwr"></span></div>
+        <div id="hiwrap">HI <span id="hi">000000</span></div>
+      </div>
+      <div id="gems"></div>
+    </div>
+
+    <div id="flash"></div>
+    <div id="crt"></div>
+    <div id="vignette"></div>
+    <div id="pausetag">⏸ PAUSED</div>
+    <div id="mute">♪ ON</div>
+    <div id="ovl"></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+//================================ DRAGON LAYERZ ================================
+const SVGNS="http://www.w3.org/2000/svg";
+const W=400,H=640, POWER_MAX=5;
+const stage=document.getElementById("stage"), root=document.documentElement;
+const layers={
+  fx:document.getElementById("fxLayer"), ebul:document.getElementById("enemyBulletLayer"),
+  enemy:document.getElementById("enemyLayer"), boss:document.getElementById("bossLayer"),
+  bul:document.getElementById("bulletLayer"), hazard:document.getElementById("hazardLayer"),
+  aura:document.getElementById("auraLayer"), power:document.getElementById("powerLayer"),
+};
+const playerEl=document.getElementById("player");
+const planetEl=document.getElementById("planet"), farEl=document.getElementById("layerFar"), nearEl=document.getElementById("layerNear");
+const hud={
+  lives:document.getElementById("lives"), layer:document.getElementById("layer"), score:document.getElementById("score"),
+  pilot:document.getElementById("pilot"), pwr:document.getElementById("pwr"), hi:document.getElementById("hi"),
+  bossbar:document.getElementById("bossbar"), bossfill:document.getElementById("bossfill"), bossname:document.getElementById("bossname"),
+  gems:document.getElementById("gems"),
+};
+const ovl=document.getElementById("ovl"), flash=document.getElementById("flash"),
+      pausetag=document.getElementById("pausetag"), muteBtn=document.getElementById("mute");
+
+const clamp=(v,a,b)=>v<a?a:v>b?b:v, rand=(a,b)=>a+Math.random()*(b-a);
+const dist2=(ax,ay,bx,by)=>{const dx=ax-bx,dy=ay-by;return dx*dx+dy*dy;};
+function use(href,x,y,w,h){
+  const el=document.createElementNS(SVGNS,"use");
+  el.setAttribute("href",href); el.setAttribute("x",-w/2); el.setAttribute("y",-h/2);
+  el.setAttribute("width",w); el.setAttribute("height",h); setPos(el,x,y); return el;
+}
+function setPos(el,x,y,rot,scale){
+  let t=`translate(${x.toFixed(1)} ${y.toFixed(1)})`;
+  if(rot)t+=` rotate(${rot})`; if(scale)t+=` scale(${scale})`; el.setAttribute("transform",t);
+}
+
+//------ persistent store (local fallback + SpaceKit cloud when embedded) ------
+const Store={
+  get(k,d){ try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;} },
+  set(k,v){ try{localStorage.setItem(k,JSON.stringify(v));}catch(e){} }
+};
+const SK_KEY={ pilot:"pilot", scores:"scores", save:"save" };
+const CloudStore={
+  cloud:false, signedIn:false,
+  mapOut(k){ return k==="dl_pilot"?SK_KEY.pilot:k==="dl_scores"?SK_KEY.scores:k==="dl_save"?SK_KEY.save:k; },
+  async init(){
+    if(window.spacekit?.storage){
+      try{
+        const r=await window.spacekit.storage.ready();
+        this.cloud=!!r?.ready;
+        this.signedIn=!!(window.__SPACEKIT_EMBED__?.identityDid||window.spacekit?.identity);
+        const pilot=await window.spacekit.storage.get(SK_KEY.pilot);
+        const scores=await window.spacekit.storage.get(SK_KEY.scores);
+        const save=await window.spacekit.storage.get(SK_KEY.save);
+        if(typeof pilot==="string"&&pilot) Store.set("dl_pilot",pilot);
+        if(Array.isArray(scores)) Store.set("dl_scores",scores);
+        if(save&&typeof save==="object") Store.set("dl_save",save);
+        else if(save===null) Store.set("dl_save",null);
+      }catch(e){}
+    }
+    return { cloud:this.cloud, signedIn:this.signedIn };
+  },
+  get(k,d){ return Store.get(k,d); },
+  async set(k,v){
+    Store.set(k,v);
+    if(!window.spacekit?.storage) return;
+    try{ await window.spacekit.storage.set(this.mapOut(k), v); }catch(e){}
+  }
+};
+
+//------------------------------- LEVELS -------------------------------
+const LEVELS=[
+  {name:"KELT-9b",        sub:"ULTRA-HOT JUPITER", hazard:"Dayside near 4600K. Ultraviolet glare tears molecules apart.",
+   acc:"#7ad7ff",acc2:"#ff5db1",haze:"#1a2a55",gem:"#9fd8ff",gemName:"SAPPHIRE OF UV",boss:"INFERNO WYRM",ptype:"uv"},
+  {name:"WASP-12b",       sub:"DOOMED HOT JUPITER", hazard:"Bleeding its mass to the star. Carbon-soot skies, ~2500K.",
+   acc:"#ff9d3a",acc2:"#ffe066",haze:"#3a1f08",gem:"#ffb84d",gemName:"AMBER OF ASH",boss:"SOOT DRAKE",ptype:"soot"},
+  {name:"HD 189733 b",    sub:"WORLD OF GLASS RAIN", hazard:"Sideways silicate rain at 7000 km/h. Glass shards everywhere.",
+   acc:"#4fd6ff",acc2:"#b06bff",haze:"#0d2240",gem:"#86e7ff",gemName:"PRISM OF SHARDS",boss:"GLASS SERPENT",ptype:"glass"},
+  {name:"55 Cancri e",    sub:"THE LAVA SUPER-EARTH", hazard:"Dayside is molten rock, ~2400K. Rivers of liquid stone.",
+   acc:"#ff6a2a",acc2:"#ffcf3a",haze:"#3a1206",gem:"#ff8c42",gemName:"GARNET OF MAGMA",boss:"MAGMA TYRANT",ptype:"lava"},
+  {name:"CoRoT-7b",       sub:"TIDE-TORN ROCK", hazard:"Tidal heating cracks the crust. The dayside boils to vapor.",
+   acc:"#ff7e54",acc2:"#7affd1",haze:"#2a1410",gem:"#ffa07a",gemName:"TOPAZ OF FRACTURE",boss:"CRUST RAVAGER",ptype:"lava"},
+  {name:"PSR B1257+12",   sub:"THE PULSAR PLANETS", hazard:"Spinning dead star bathes everything in lethal radiation.",
+   acc:"#b78bff",acc2:"#56f0ff",haze:"#1a103a",gem:"#c9a6ff",gemName:"OPAL OF DECAY",boss:"RADIANT GHOUL",ptype:"radiation"},
+  {name:"OGLE-390Lb",     sub:"THE FROZEN EXILE", hazard:"Far from any warmth. A still, white world of locked ice.",
+   acc:"#9be8ff",acc2:"#dff6ff",haze:"#0a2236",gem:"#d6f4ff",gemName:"DIAMOND OF FROST",boss:"FROST WYRM",ptype:"ice"},
+  {name:"TRAPPIST-1 c",   sub:"FLARE-LOCKED EARTH", hazard:"Tidally locked. Stellar flares peel the atmosphere away.",
+   acc:"#ff8fb0",acc2:"#ffd166",haze:"#2a1230",gem:"#ff9ec4",gemName:"RUBY OF FLARES",boss:"FLARE BASILISK",ptype:"radiation"},
+  {name:"GJ 1214 b",      sub:"THE STEAM WORLD", hazard:"Crushing hot vapor wraps a hidden ocean none could survive.",
+   acc:"#5ad6c0",acc2:"#9be8ff",haze:"#0a2e2a",gem:"#7af0d4",gemName:"EMERALD OF STEAM",boss:"VAPOR LEVIATHAN",ptype:"steam"},
+  {name:"HD 80606 b",     sub:"THE ECCENTRIC FURNACE", hazard:"A wild orbit swings it cool to 1200K in hours. Storms scream.",
+   acc:"#ffae42",acc2:"#ff5db1",haze:"#3a2106",gem:"#ffc861",gemName:"CITRINE OF STORMS",boss:"TEMPEST DRAGON",ptype:"soot"},
+  {name:"THE COSMIC GATE",sub:"THRESHOLD OF IMMORTALITY", hazard:"Ten jewels burn in your hand. Only the SOVEREIGN guards the gate.",
+   acc:"#8effd6",acc2:"#ffd166",haze:"#101a3a",gem:"#b6ffe6",gemName:"HEART OF FOREVER",boss:"DRAGON SOVEREIGN",ptype:"cosmic",final:true},
+];
+
+//------------------------------- AUDIO -------------------------------
+const Audio0=(()=>{
+  let ctx=null,on=true;
+  function ac(){ if(!ctx){ try{ctx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){} } return ctx; }
+  function tone(f,dur,type,vol,slideTo){ if(!on)return; const c=ac(); if(!c)return;
+    const o=c.createOscillator(),g=c.createGain(); o.type=type||"square"; o.frequency.setValueAtTime(f,c.currentTime);
+    if(slideTo)o.frequency.exponentialRampToValueAtTime(Math.max(1,slideTo),c.currentTime+dur);
+    g.gain.setValueAtTime(vol||.15,c.currentTime); g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+dur);
+    o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime+dur);
+  }
+  function noise(dur,vol){ if(!on)return; const c=ac(); if(!c)return;
+    const n=c.sampleRate*dur, buf=c.createBuffer(1,n,c.sampleRate), d=buf.getChannelData(0);
+    for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*(1-i/n);
+    const s=c.createBufferSource(),g=c.createGain(); s.buffer=buf; g.gain.value=vol||.18; s.connect(g); g.connect(c.destination); s.start();
+  }
+  return {
+    shoot(){ tone(900,.07,"square",.04,1600); },
+    hit(){   tone(240,.05,"square",.05); },
+    boom(){  noise(.22,.16); tone(120,.22,"sawtooth",.11,40); },
+    big(){   noise(.5,.24); tone(90,.6,"sawtooth",.17,30); },
+    hurt(){  tone(200,.32,"sawtooth",.18,55); noise(.2,.12); },
+    power(){ [660,990,1320].forEach((f,i)=>setTimeout(()=>tone(f,.1,"triangle",.12),i*55)); },
+    clang(){ tone(1500,.04,"square",.07,700); noise(.05,.05); },
+    shatter(){ noise(.3,.2); tone(900,.3,"square",.1,180); },
+    roar(){  tone(150,.55,"sawtooth",.16,55); noise(.4,.12); },
+    jewel(){ [523,659,784,1047].forEach((f,i)=>setTimeout(()=>tone(f,.16,"triangle",.13),i*90)); },
+    win(){   [392,523,659,784,1047,1319].forEach((f,i)=>setTimeout(()=>tone(f,.22,"triangle",.14),i*130)); },
+    toggle(){ on=!on; return on; },
+    resume(){ const c=ac(); if(!c)return;
+      if(c.state!=="running") c.resume().catch(()=>{});
+      // iOS unlock: play a 1-sample silent buffer inside the user gesture
+      if(!Audio0._unlocked){ try{
+        const b=c.createBuffer(1,1,22050), s=c.createBufferSource();
+        s.buffer=b; s.connect(c.destination); s.start(0); Audio0._unlocked=true;
+      }catch(e){} }
+    }
+  };
+})();
+// iOS fires unlock most reliably on touchend; also recover after interruptions
+["touchend","touchstart","mousedown","keydown"].forEach(ev=>
+  document.addEventListener(ev,()=>Audio0.resume(),{passive:true}));
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden) Audio0.resume(); });
+
+//------------------------------- INPUT -------------------------------
+const keys={};
+addEventListener("keydown",e=>{
+  if(e.target && e.target.tagName==="INPUT"){ if(e.key==="Enter"){ e.preventDefault(); if(state==="title")startGame(); } return; }
+  if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"," "].includes(e.key)) e.preventDefault();
+  keys[e.key.toLowerCase()]=true; Audio0.resume();
+  if(e.key==="Enter")  onConfirm();
+  if(e.key.toLowerCase()==="p") togglePause();
+  if(e.key.toLowerCase()==="m") setMute();
+});
+addEventListener("keyup",e=>{ keys[e.key.toLowerCase()]=false; });
+
+let pointer={active:false,x:W/2,y:H*0.8};
+function svgPoint(ev){ const r=stage.getBoundingClientRect();
+  const cx=(ev.touches?ev.touches[0].clientX:ev.clientX), cy=(ev.touches?ev.touches[0].clientY:ev.clientY);
+  return { x:clamp((cx-r.left)/r.width*W,0,W), y:clamp((cy-r.top)/r.height*H,0,H) }; }
+function pDown(ev){ Audio0.resume(); if(state==="play"){ pointer.active=true; const p=svgPoint(ev); pointer.x=p.x; pointer.y=p.y; ev.preventDefault(); } }
+function pMove(ev){ if(pointer.active){ const p=svgPoint(ev); pointer.x=p.x; pointer.y=p.y; ev.preventDefault(); } }
+function pUp(){ pointer.active=false; }
+stage.addEventListener("mousedown",pDown); stage.addEventListener("mousemove",pMove); addEventListener("mouseup",pUp);
+stage.addEventListener("touchstart",pDown,{passive:false}); stage.addEventListener("touchmove",pMove,{passive:false}); addEventListener("touchend",pUp);
+muteBtn.addEventListener("click",e=>{e.stopPropagation();setMute();});
+function setMute(){ const on=Audio0.toggle(); muteBtn.textContent=on?"♪ ON":"♪ OFF"; muteBtn.style.opacity=on?.5:.8; }
+ovl.addEventListener("click",()=>{ Audio0.resume(); if(state!=="title") onConfirm(); });
+
+//------------------------------- STATE -------------------------------
+let state="title", levelIndex=0;
+let score=0, lives=3, jewels=0, power=1, shakeT=0, last=0, hazardTimer=0;
+let pilotName=Store.get("dl_pilot","PLAYER ONE");
+let scores=Store.get("dl_scores",[]);
+let hiScore=scores.length?scores[0].score:0;
+let cloudInfo={cloud:false,signedIn:false};
+
+function persistRun(){
+  if(state!=="play"&&state!=="paused") return;
+  const slot={levelIndex,score,lives,jewels,power,pilotName,savedAt:Date.now()};
+  void CloudStore.set("dl_save",slot);
+}
+function clearRunSave(){ void CloudStore.set("dl_save",null); Store.set("dl_save",null); }
+function resumeRun(slot){
+  pilotName=(slot.pilotName||pilotName).toUpperCase().slice(0,11);
+  score=slot.score|0; lives=slot.lives|0; jewels=slot.jewels|0; power=clamp(slot.power|0,1,POWER_MAX);
+  setupLevel(clamp(slot.levelIndex|0,0,LEVELS.length-1));
+  hideOvl(); state="play"; last=performance.now();
+}
+
+const player={x:W/2,y:H*0.78,r:11,cd:0,inv:0,alive:true};
+const bullets=[],enemies=[],ebullets=[],fx=[],hazards=[],powerups=[];
+let boss=null;
+const level={killsNeeded:0,kills:0,phase:"swarm",spawnT:0,enemySpeed:0,fireChance:0,bulletSpeed:0,minionT:0};
+let farScroll=0,nearScroll=0,planetT=0;
+
+//------------------------------- THEME / HUD -------------------------------
+function applyTheme(L){ root.style.setProperty("--accent",L.acc); root.style.setProperty("--accent2",L.acc2);
+  root.style.setProperty("--haze",L.haze); root.style.setProperty("--gem",L.gem); }
+function heroIcon(){ return `<svg viewBox="-16 -16 32 32"><use href="#sp_hero" x="-16" y="-16" width="32" height="32" style="color:${LEVELS[levelIndex].acc}"/></svg>`; }
+function renderLives(){ hud.lives.innerHTML=Array.from({length:Math.max(0,lives)}).map(heroIcon).join(""); }
+function renderScore(){ hud.score.textContent=String(score).padStart(6,"0"); hud.hi.textContent=String(Math.max(hiScore,score)).padStart(6,"0"); }
+function renderLayer(){ hud.layer.textContent=`LAYER ${levelIndex+1}/11`; }
+function renderPilot(){ hud.pilot.textContent=pilotName; }
+function renderPower(){ let s=""; for(let i=0;i<POWER_MAX;i++) s+= i<power?"▮":`<span class="off">▯</span>`; hud.pwr.innerHTML=s; }
+function renderGems(){ hud.gems.innerHTML=LEVELS.map((L,i)=>
+  `<svg class="g ${i<jewels?'on':''}" viewBox="-12 -14 24 28" style="color:${L.gem}"><use href="#sp_jewel" x="-12" y="-14" width="24" height="28"/></svg>`).join(""); }
+
+//------------------------------- FACTORIES -------------------------------
+function spawnBullet(x,y,vx){ const e=use("#sp_pbolt",x,y,9,18); layers.bul.appendChild(e);
+  bullets.push({x,y,vx:vx||0,vy:-560,r:6,el:e}); }
+const FIRE=[
+  {cd:.18,sh:[{dx:0,vx:0}]},
+  {cd:.16,sh:[{dx:-6,vx:0},{dx:6,vx:0}]},
+  {cd:.15,sh:[{dx:0,vx:0},{dx:0,vx:-115},{dx:0,vx:115}]},
+  {cd:.13,sh:[{dx:0,vx:0},{dx:-5,vx:-150},{dx:5,vx:150}]},
+  {cd:.11,sh:[{dx:0,vx:0},{dx:0,vx:-90},{dx:0,vx:90},{dx:0,vx:-210},{dx:0,vx:210}]},
+];
+function fire(){ const f=FIRE[clamp(power,1,POWER_MAX)-1]; f.sh.forEach(s=>spawnBullet(player.x+s.dx,player.y-14,s.vx)); player.cd=f.cd; Audio0.shoot(); }
+
+function spawnEnemy(){ const x=rand(40,W-40); const el=use("#sp_wyrm",x,-20,28,28); el.style.color=LEVELS[levelIndex].acc; layers.enemy.appendChild(el);
+  enemies.push({x,y:-20,r:13,el,baseX:x,t:rand(0,6.28),vy:level.enemySpeed*rand(.85,1.2),sway:rand(22,52),swaySp:rand(1.4,2.6),fireCd:rand(.6,2.2)}); }
+function spawnEbullet(x,y,vx,vy){ const el=use("#sp_ember",x,y,12,12); layers.ebul.appendChild(el); ebullets.push({x,y,vx,vy,r:6,el}); }
+function spawnPower(x,y){ const el=use("#sp_power",x,y,20,20); el.style.color=LEVELS[levelIndex].acc; layers.power.appendChild(el);
+  powerups.push({x,y,vy:70,r:11,el,life:8,t:0}); }
+
+function bossTier(i){ if(LEVELS[i].final)return 4; if(i>=6)return 3; if(i>=3)return 2; return 1; }
+function makeBoss(){
+  const L=LEVELS[levelIndex], tier=bossTier(levelIndex), final=!!L.final;
+  const sym=["#sp_boss1","#sp_boss2","#sp_boss3","#sp_sovereign"][tier-1];
+  const size=(final?104:78)+levelIndex*1.6;
+  const el=use(sym,W/2,-70,size,size*0.92); el.style.color=L.acc; layers.boss.appendChild(el);
+  const maxhp=final?220:(44+levelIndex*16);
+  const armorMax = tier===1?0 : tier===2?(14+(levelIndex-3)*4) : tier===3?(30+(levelIndex-6)*6) : 90;
+  let aura=null;
+  if(tier>=3){ aura=document.createElementNS(SVGNS,"circle"); aura.setAttribute("r",size*0.6);
+    aura.setAttribute("fill","none"); aura.setAttribute("stroke",final?L.acc:L.acc2); aura.setAttribute("stroke-width",2);
+    aura.setAttribute("opacity",".4"); aura.setAttribute("filter","url(#softglow)"); layers.aura.appendChild(aura); }
+  boss={x:W/2,y:-70,r:(final?40:30)+levelIndex*0.6,el,aura,size,vx:60+levelIndex*7,targetY:118,
+        hp:maxhp,maxhp,armor:armorMax,armorMax,fireCd:1.2,pattern:0,patternT:0,final,entering:true,tier};
+  hud.bossname.innerHTML = armorMax>0 ? `<span class="arm">▣ ARMORED ▣</span> ${L.boss}` : L.boss;
+  hud.bossname.classList.add("show"); hud.bossbar.classList.add("show");
+  hud.bossbar.classList.toggle("armored",armorMax>0); hud.bossfill.classList.toggle("armored",armorMax>0);
+  hud.bossfill.style.width="100%"; Audio0.roar();
+}
+function explode(x,y,color,n,big){ Audio0[big?"big":"boom"]();
+  for(let i=0;i<n;i++){ const a=rand(0,6.28),sp=rand(40,big?260:160);
+    const el=document.createElementNS(SVGNS,"circle"); el.setAttribute("r",big?rand(2,5):rand(1.5,3.5));
+    el.setAttribute("fill",Math.random()<.5?color:"#ffd166"); el.setAttribute("filter","url(#glow)"); setPos(el,x,y); layers.fx.appendChild(el);
+    fx.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:rand(.4,.9),max:.9,el}); }
+  shakeT=Math.max(shakeT,big?0.5:0.18);
+}
+function sparks(x,y,color,n){ for(let i=0;i<(n||4);i++){ const a=rand(0,6.28),sp=rand(60,170);
+  const el=document.createElementNS(SVGNS,"circle"); el.setAttribute("r",rand(1,2.2)); el.setAttribute("fill",color); el.setAttribute("filter","url(#glow)");
+  setPos(el,x,y); layers.fx.appendChild(el); fx.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:.35,max:.35,el}); } }
+
+//------------------------------- HAZARDS -------------------------------
+function clearHazards(){ hazards.forEach(h=>h.el.remove()); hazards.length=0; }
+function spawnHazard(){ const L=LEVELS[levelIndex],kind=L.ptype; const x=rand(0,W);
+  let vy=rand(60,140),vx=0; if(kind==="glass")vx=rand(-90,-40); if(kind==="ice")vy=rand(30,70);
+  const el=document.createElementNS(SVGNS,"path"); let d,fill=L.acc,op=.5;
+  switch(kind){
+    case"glass":d="M0,-5 L3,0 L0,6 L-3,0 Z";fill="#cfeeff";op=.55;break;
+    case"lava": d="M0,-3 L2,0 L0,4 L-2,0 Z";fill="#ff7a2a";op=.7;break;
+    case"ice":  d="M0,-4 L1,0 L0,4 L-1,0 Z M-4,0 L0,1 L4,0 L0,-1 Z";fill="#dff6ff";op=.6;break;
+    case"soot": d="M0,-2 L2,0 L0,3 L-2,0 Z";fill="#5a4a3a";op=.7;break;
+    case"radiation":d="M0,-7 L0,7";break;
+    case"steam":d="M0,0 m-4,0 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0";fill="#bfeede";op=.18;break;
+    case"cosmic":d="M0,-6 L0,6 M-6,0 L6,0";break;
+    default:d="M0,-3 L2,0 L0,4 L-2,0 Z";
+  }
+  el.setAttribute("d",d);
+  if(kind==="radiation"||kind==="cosmic"){ el.setAttribute("stroke",L.acc); el.setAttribute("stroke-width",1); el.setAttribute("opacity",.4); }
+  else { el.setAttribute("fill",fill); el.setAttribute("opacity",op); }
+  setPos(el,x,-10); layers.hazard.appendChild(el);
+  hazards.push({x,y:-10,vx,vy,el,rot:rand(0,360),rotSp:rand(-180,180)});
+}
+
+//------------------------------- LEVEL SETUP -------------------------------
+function setupLevel(i){
+  levelIndex=i; const L=LEVELS[i]; applyTheme(L);
+  level.killsNeeded=L.final?0:(10+i*3); level.kills=0; level.phase=L.final?"boss":"swarm";
+  level.spawnT=0.6; level.enemySpeed=70+i*9; level.fireChance=0.4+i*0.12; level.bulletSpeed=150+i*16; level.minionT=3;
+  [bullets,enemies,ebullets,fx,powerups].forEach(arr=>{arr.forEach(o=>o.el.remove());arr.length=0;});
+  clearHazards(); layers.aura.innerHTML="";
+  if(boss){boss.el.remove();boss=null;}
+  hud.bossbar.classList.remove("show","armored"); hud.bossname.classList.remove("show"); hud.bossfill.classList.remove("armored");
+  player.x=W/2; player.y=H*0.78; player.inv=1.2; player.alive=true; pointer.active=false; pointer.x=player.x; pointer.y=player.y;
+  renderLives(); renderScore(); renderLayer(); renderPower(); renderPilot(); renderGems();
+  if(L.final) makeBoss();
+}
+
+//------------------------------- SCREENS -------------------------------
+function show(html){ ovl.innerHTML=html; ovl.classList.remove("hide"); }
+function hideOvl(){ ovl.classList.add("hide"); }
+
+function titleScreen(){
+  state="title"; applyTheme(LEVELS[0]);
+  const saved=CloudStore.get("dl_save",null);
+  const syncHint=cloudInfo.signedIn
+    ? `<p class="small" style="color:var(--accent)">☁ scores synced to your account</p>`
+    : cloudInfo.cloud
+      ? `<p class="small" style="opacity:.65">Sign in on spacekit.xyz to sync scores across devices</p>`
+      : "";
+  show(`
+    <h1>DRAGON<br>LAYERZ</h1>
+    <p class="small">Last alchemist — descend 11 dragon worlds, crack each MASTER DRAGON's armor, take its jewel, and open the COSMIC GATE OF IMMORTALITY.</p>
+    ${syncHint}
+    <p class="small" style="color:var(--accent)">ENTER PILOT NAME</p>
+    <input id="pname" maxlength="11" value="${pilotName.replace(/"/g,'')}" autocomplete="off" spellcheck="false">
+    <button class="btn" id="startbtn">▶ START</button>
+    ${saved?`<button class="btn" id="resumebtn" style="background:var(--accent2);box-shadow:0 0 16px -3px var(--accent2)">↩ CONTINUE LAYER ${saved.levelIndex+1}</button>`:""}
+    <p class="small">MOVE <span class="key">←↑↓→/WASD</span> · FIRE <span class="key">SPACE</span> · drag to fly &amp; auto-fire<br>grab <span style="color:var(--accent)">◆ POWER</span> orbs to upgrade your guns · <span class="key">P</span> pause · <span class="key">M</span> mute</p>
+    ${scores.length?`<div class="board">— TOP PILOTS —<br>${scores.slice(0,3).map((s,i)=>`<span class="rank">${i+1}.</span> ${s.name} &nbsp; ${String(s.score).padStart(6,"0")}`).join("<br>")}</div>`:""}
+  `);
+  const inp=document.getElementById("pname");
+  inp.addEventListener("click",e=>e.stopPropagation());
+  document.getElementById("startbtn").addEventListener("click",e=>{e.stopPropagation();Audio0.resume();startGame();});
+  if(saved){
+    document.getElementById("resumebtn").addEventListener("click",e=>{
+      e.stopPropagation(); Audio0.resume(); resumeRun(saved);
+    });
+  }
+  setTimeout(()=>{ try{inp.focus();inp.select();}catch(e){} },50);
+}
+function startGame(){
+  const inp=document.getElementById("pname");
+  pilotName=((inp&&inp.value.trim())||"PLAYER ONE").toUpperCase().slice(0,11);
+  void CloudStore.set("dl_pilot",pilotName);
+  clearRunSave();
+  score=0; lives=3; jewels=0; power=1;
+  setupLevel(0); introScreen();
+}
+function introScreen(){ state="intro"; const L=LEVELS[levelIndex];
+  show(`
+    <p class="small" style="color:var(--accent)">LAYER ${levelIndex+1} OF 11</p>
+    <h2>${L.name}</h2><p class="small" style="opacity:.8">${L.sub}</p>
+    <p>${L.hazard}</p>
+    <p class="small">GUARDIAN: <span style="color:var(--accent2)">${L.boss}</span>${bossTier(levelIndex)>=2?` <span style="color:#cdd7e8">[ARMORED]</span>`:""}<br>PRIZE: <span style="color:var(--gem)">${L.gemName}</span></p>
+    <div class="blink">▶ PRESS ENTER / TAP TO DESCEND</div>`);
+}
+function levelClearScreen(){ state="levelclear"; persistRun(); const L=LEVELS[levelIndex]; Audio0.jewel();
+  show(`
+    <p class="small" style="color:var(--accent)">GUARDIAN SLAIN</p>
+    <svg viewBox="-12 -14 24 28" style="width:54px;height:54px;color:${L.gem};filter:drop-shadow(0 0 14px ${L.gem})"><use href="#sp_jewel" x="-12" y="-14" width="24" height="28"/></svg>
+    <h2 style="color:var(--gem)">${L.gemName}</h2>
+    <p class="small">claimed. ${11-jewels} jewel${11-jewels===1?'':'s'} remain.</p>
+    <div class="gemrow">${LEVELS.map((x,i)=>`<svg viewBox="-12 -14 24 28" style="color:${x.gem};opacity:${i<jewels?1:.18}"><use href="#sp_jewel" x="-12" y="-14" width="24" height="28"/></svg>`).join("")}</div>
+    <div class="blink">▶ TAP / ENTER — DESCEND TO ${LEVELS[levelIndex+1].name}</div>`);
+}
+function boardHtml(){ return `<div class="board">— TOP PILOTS —<br>${scores.slice(0,5).map((s,i)=>`<span class="${s.name===pilotName&&s.score===score?'me':''}"><span class="rank">${i+1}.</span> ${s.name} &nbsp; ${String(s.score).padStart(6,"0")}</span>`).join("<br>")}</div>`; }
+function gameOverScreen(){ state="gameover"; const nh=recordScore();
+  show(`
+    <h1 style="color:var(--accent2)">YOU FELL</h1>
+    <p>The dragons of <span style="color:var(--accent)">${LEVELS[levelIndex].name}</span> claimed you on layer ${levelIndex+1}.</p>
+    ${nh?`<h2 style="color:var(--accent)">★ NEW HIGH SCORE ★</h2>`:""}
+    <p class="small">PILOT ${pilotName} · JEWELS ${jewels}/11 · SCORE ${String(score).padStart(6,"0")}</p>
+    ${boardHtml()}
+    <div class="blink">▶ TAP / ENTER TO TRY AGAIN</div>`);
+}
+function victoryScreen(){ state="victory"; const nh=recordScore(); Audio0.win();
+  show(`
+    <h1>THE GATE OPENS</h1>
+    <div class="gemrow">${LEVELS.map(x=>`<svg viewBox="-12 -14 24 28" style="color:${x.gem}"><use href="#sp_jewel" x="-12" y="-14" width="24" height="28"/></svg>`).join("")}</div>
+    <p>Eleven jewels blaze as one. The seal breaks; the COSMIC GATE swings wide and you step into <span style="color:var(--accent2)">immortality</span>.</p>
+    ${nh?`<h2 style="color:var(--accent)">★ NEW HIGH SCORE ★</h2>`:""}
+    <p class="small">PILOT ${pilotName} · FINAL SCORE ${String(score).padStart(6,"0")} · YOU ARE FOREVER</p>
+    ${boardHtml()}
+    <div class="blink">▶ TAP / ENTER TO PLAY AGAIN</div>`);
+}
+function recordScore(){
+  const wasHi = score>hiScore;
+  const row={name:pilotName,score,at:Date.now()};
+  scores.push(row); scores.sort((a,b)=>b.score-a.score); scores=scores.slice(0,5);
+  hiScore=scores[0].score;
+  void CloudStore.set("dl_scores",scores);
+  clearRunSave();
+  return wasHi;
+}
+
+function onConfirm(){ Audio0.resume();
+  switch(state){
+    case "intro":      hideOvl(); state="play"; break;
+    case "levelclear": jewels<11 ? (setupLevel(levelIndex+1),introScreen()) : victoryScreen(); break;
+    case "gameover":   titleScreen(); break;
+    case "victory":    titleScreen(); break;
+  }
+}
+function togglePause(){ if(state==="play"){ state="paused"; pausetag.classList.add("show"); persistRun(); }
+  else if(state==="paused"){ state="play"; pausetag.classList.remove("show"); last=performance.now(); } }
+
+//------------------------------- UPDATE -------------------------------
+function bgScroll(dt){
+  farScroll=(farScroll-24*dt)%120; nearScroll=(nearScroll-60*dt)%160;
+  farEl.setAttribute("transform",`translate(0 ${farScroll.toFixed(1)})`);
+  nearEl.setAttribute("transform",`translate(0 ${nearScroll.toFixed(1)})`);
+  planetT+=dt; setPos(planetEl,Math.sin(planetT*0.2)*24,Math.cos(planetT*0.15)*10);
+}
+function update(dt){
+  bgScroll(dt);
+  hazardTimer-=dt; if(hazardTimer<=0){ hazardTimer=rand(0.05,0.18); spawnHazard(); }
+  for(let i=hazards.length-1;i>=0;i--){ const h=hazards[i]; h.y+=h.vy*dt; h.x+=h.vx*dt; h.rot+=h.rotSp*dt; setPos(h.el,h.x,h.y,h.rot);
+    if(h.y>H+20||h.x<-20||h.x>W+20){ h.el.remove(); hazards.splice(i,1); } }
+  if(state!=="play"){ renderFx(dt); return; }
+
+  const sp=240;
+  if(pointer.active){ player.x+=(pointer.x-player.x)*Math.min(1,dt*12); player.y+=(pointer.y-player.y)*Math.min(1,dt*12); }
+  if(keys["arrowleft"]||keys["a"])player.x-=sp*dt; if(keys["arrowright"]||keys["d"])player.x+=sp*dt;
+  if(keys["arrowup"]||keys["w"])player.y-=sp*dt; if(keys["arrowdown"]||keys["s"])player.y+=sp*dt;
+  player.x=clamp(player.x,16,W-16); player.y=clamp(player.y,46,H-26);
+
+  player.cd-=dt;
+  const firing=keys[" "]||keys["spacebar"]||pointer.active;
+  if(firing&&player.cd<=0) fire();
+
+  if(player.inv>0){ player.inv-=dt; playerEl.style.opacity=(Math.floor(player.inv*16)%2)?0.25:1; } else playerEl.style.opacity=1;
+  setPos(playerEl,player.x,player.y);
+
+  for(let i=bullets.length-1;i>=0;i--){ const b=bullets[i]; b.x+=b.vx*dt; b.y+=b.vy*dt; setPos(b.el,b.x,b.y);
+    if(b.y<-20||b.x<-20||b.x>W+20){ b.el.remove(); bullets.splice(i,1); } }
+
+  for(let i=powerups.length-1;i>=0;i--){ const o=powerups[i]; o.y+=o.vy*dt; o.t+=dt; o.life-=dt;
+    setPos(o.el,o.x,o.y,Math.sin(o.t*4)*8); o.el.setAttribute("opacity", o.life<1.5?(0.3+Math.abs(Math.sin(o.t*10))*0.7).toFixed(2):1);
+    if(o.life<=0||o.y>H+20){ o.el.remove(); powerups.splice(i,1); continue; }
+    if(dist2(o.x,o.y,player.x,player.y)<(o.r+player.r)*(o.r+player.r)){
+      o.el.remove(); powerups.splice(i,1);
+      if(power<POWER_MAX){ power++; renderPower(); Audio0.power(); sparks(player.x,player.y,LEVELS[levelIndex].acc,8); }
+      else { addScore(250); Audio0.power(); }
+    } }
+
+  if(level.phase==="swarm"){
+    level.spawnT-=dt;
+    if(level.spawnT<=0&&enemies.length<8){ level.spawnT=clamp(1.4-levelIndex*0.07,0.45,1.4)*rand(.7,1.2); spawnEnemy(); }
+    if(level.kills>=level.killsNeeded&&enemies.length===0){ level.phase="boss"; makeBoss(); }
+  }
+
+  for(let i=enemies.length-1;i>=0;i--){ const e=enemies[i]; e.t+=dt; e.y+=e.vy*dt; e.x=clamp(e.baseX+Math.sin(e.t*e.swaySp)*e.sway,14,W-14); setPos(e.el,e.x,e.y);
+    e.fireCd-=dt;
+    if(e.fireCd<=0&&e.y>20&&e.y<H*0.7&&Math.random()<level.fireChance*dt*6){ e.fireCd=rand(.8,2.4);
+      const ang=Math.atan2(player.y-e.y,player.x-e.x); spawnEbullet(e.x,e.y,Math.cos(ang)*level.bulletSpeed,Math.sin(ang)*level.bulletSpeed); }
+    if(e.y>H+24){ e.el.remove(); enemies.splice(i,1); continue; }
+    for(let j=bullets.length-1;j>=0;j--){ const b=bullets[j];
+      if(dist2(b.x,b.y,e.x,e.y)<(e.r+b.r)*(e.r+b.r)){ b.el.remove(); bullets.splice(j,1);
+        e.el.remove(); enemies.splice(i,1); explode(e.x,e.y,LEVELS[levelIndex].acc,8,false);
+        addScore(100); level.kills++; if(Math.random()<0.14) spawnPower(e.x,e.y); break; } }
+    if(player.inv<=0&&enemies[i]&&dist2(player.x,player.y,e.x,e.y)<(player.r+e.r)*(player.r+e.r)){
+      e.el.remove(); enemies.splice(i,1); explode(player.x,player.y,LEVELS[levelIndex].acc,8,false); hurtPlayer(); }
+  }
+
+  if(boss) updateBoss(dt);
+
+  for(let i=ebullets.length-1;i>=0;i--){ const b=ebullets[i]; b.x+=b.vx*dt; b.y+=b.vy*dt; setPos(b.el,b.x,b.y);
+    if(b.y>H+20||b.y<-20||b.x<-20||b.x>W+20){ b.el.remove(); ebullets.splice(i,1); continue; }
+    if(player.inv<=0&&dist2(b.x,b.y,player.x,player.y)<(b.r+player.r)*(b.r+player.r)){ b.el.remove(); ebullets.splice(i,1); hurtPlayer(); } }
+
+  renderFx(dt);
+}
+
+function updateBoss(dt){
+  if(boss.entering){ boss.y+=140*dt; if(boss.y>=boss.targetY){ boss.y=boss.targetY; boss.entering=false; } }
+  else { boss.x+=boss.vx*dt;
+    if(boss.x<boss.size*0.4){ boss.x=boss.size*0.4; boss.vx*=-1; }
+    if(boss.x>W-boss.size*0.4){ boss.x=W-boss.size*0.4; boss.vx*=-1; }
+    boss.y=boss.targetY+Math.sin(performance.now()/700)*14;
+    boss.fireCd-=dt; boss.patternT+=dt;
+    if(boss.fireCd<=0){ bossFire(); boss.fireCd=clamp(1.0-levelIndex*0.05,0.45,1.0); }
+    if(boss.patternT>4){ boss.patternT=0; boss.pattern=(boss.pattern+1)%(boss.final?3:2); }
+    if(boss.final){ level.minionT-=dt; if(level.minionT<=0&&enemies.length<6){ level.minionT=2.4; spawnEnemy(); } }
+  }
+  setPos(boss.el,boss.x,boss.y);
+  if(boss.aura){ const s=1+Math.sin(performance.now()/350)*0.08; setPos(boss.aura,boss.x,boss.y,0,s);
+    boss.aura.setAttribute("opacity",(0.28+Math.abs(Math.sin(performance.now()/500))*0.3).toFixed(2)); }
+
+  for(let j=bullets.length-1;j>=0;j--){ const b=bullets[j];
+    if(dist2(b.x,b.y,boss.x,boss.y)<(boss.r+b.r)*(boss.r+b.r)){
+      b.el.remove(); bullets.splice(j,1);
+      if(boss.armor>0){
+        boss.armor--; Audio0.clang(); sparks(b.x,b.y,"#dbe3f0",5); addScore(8);
+        if(boss.armor<=0){ Audio0.shatter(); shakeT=Math.max(shakeT,.3);
+          hud.bossbar.classList.remove("armored"); hud.bossfill.classList.remove("armored");
+          hud.bossname.innerHTML=LEVELS[levelIndex].boss; hud.bossfill.style.width="100%"; }
+        else hud.bossfill.style.width=Math.max(0,(boss.armor/boss.armorMax)*100)+"%";
+      } else {
+        boss.hp--; Audio0.hit(); explode(b.x,b.y,"#ffd166",3,false); addScore(15);
+        hud.bossfill.style.width=Math.max(0,(boss.hp/boss.maxhp)*100)+"%";
+        if(boss.hp<=0){ defeatBoss(); return; }
+      }
+    } }
+  if(player.inv<=0&&dist2(player.x,player.y,boss.x,boss.y)<(player.r+boss.r*0.7)*(player.r+boss.r*0.7)) hurtPlayer();
+}
+function bossFire(){ const s=level.bulletSpeed*0.92, p=boss.pattern;
+  if(p===0){ const ang=Math.atan2(player.y-boss.y,player.x-boss.x);
+    for(let k=-1;k<=1;k++){ const a=ang+k*0.22; spawnEbullet(boss.x,boss.y+10,Math.cos(a)*s,Math.sin(a)*s); } }
+  else if(p===1){ const n=boss.final?12:8;
+    for(let k=0;k<n;k++){ const a=(Math.PI/(n-1))*k; spawnEbullet(boss.x,boss.y+10,Math.cos(a)*s*0.8,Math.abs(Math.sin(a))*s*0.8+40); } }
+  else { const base=performance.now()/120;
+    for(let k=0;k<5;k++){ const a=base+k*(6.28/5); spawnEbullet(boss.x,boss.y,Math.cos(a)*s*0.7,Math.abs(Math.sin(a))*s*0.7+60); } }
+}
+function defeatBoss(){ const bx=boss.x,by=boss.y; explode(bx,by,LEVELS[levelIndex].acc,42,true);
+  if(boss.aura)boss.aura.remove(); boss.el.remove(); boss=null;
+  hud.bossbar.classList.remove("show","armored"); hud.bossname.classList.remove("show"); hud.bossfill.classList.remove("armored");
+  ebullets.forEach(b=>b.el.remove()); ebullets.length=0; enemies.forEach(e=>e.el.remove()); enemies.length=0;
+  addScore(1000+levelIndex*250); jewels++; renderGems(); level.phase="cleared";
+  spawnPower(bx,by);
+  if(LEVELS[levelIndex].final) setTimeout(victoryScreen,1100); else setTimeout(levelClearScreen,700);
+}
+function addScore(n){ score+=n; renderScore(); }
+function hurtPlayer(){ if(player.inv>0)return; Audio0.hurt(); flashScreen(); shakeT=0.35; lives--; renderLives();
+  if(power>1){ power--; renderPower(); }
+  if(lives<0){ explode(player.x,player.y,"#fff",30,true); playerEl.style.opacity=.05; state="play_dead"; setTimeout(gameOverScreen,600); return; }
+  player.inv=1.6; }
+function flashScreen(){ flash.style.transition="none"; flash.style.opacity=.7; requestAnimationFrame(()=>{ flash.style.transition="opacity .35s"; flash.style.opacity=0; }); }
+function renderFx(dt){ for(let i=fx.length-1;i>=0;i--){ const p=fx[i]; p.life-=dt; p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=120*dt;
+  if(p.life<=0){ p.el.remove(); fx.splice(i,1); continue; } setPos(p.el,p.x,p.y); p.el.setAttribute("opacity",(p.life/p.max).toFixed(2)); } }
+
+//------------------------------- LOOP / BOOT -------------------------------
+function loop(ts){ const dt=Math.min(0.05,(ts-last)/1000)||0; last=ts;
+  if(state!=="paused"){ update(dt);
+    if(state==="play"&&Math.floor(ts/30000)!==loop._autosave){ loop._autosave=Math.floor(ts/30000); persistRun(); }
+    if(shakeT>0){ shakeT-=dt; const m=shakeT*22; stage.style.transform=`translate(${rand(-m,m).toFixed(1)}px,${rand(-m,m).toFixed(1)}px)`; }
+    else stage.style.transform=""; }
+  requestAnimationFrame(loop);
+}
+loop._autosave=-1;
+function applyLocalProgress(){
+  pilotName=CloudStore.get("dl_pilot","PLAYER ONE");
+  scores=CloudStore.get("dl_scores",[]);
+  hiScore=scores.length?scores[0].score:0;
+  renderGems(); renderLives(); renderScore(); renderLayer(); renderPower(); renderPilot();
+}
+function boot(){
+  // Local-first: title + loop immediately; cloud hydrate refreshes title when ready.
+  applyLocalProgress();
+  applyTheme(LEVELS[0]);
+  titleScreen();
+  last=performance.now();
+  requestAnimationFrame(loop);
+  void CloudStore.init().then((info)=>{
+    cloudInfo=info;
+    applyLocalProgress();
+    if(state!=="title") return;
+    const inp=document.getElementById("pname");
+    // Don't clobber an in-progress name edit.
+    if(inp && document.activeElement===inp) return;
+    const draft=inp?inp.value:null;
+    titleScreen();
+    if(draft!=null){
+      const n=document.getElementById("pname");
+      if(n) n.value=draft;
+    }
+  });
+}
+boot();
+</script>
+</body>
+</html>

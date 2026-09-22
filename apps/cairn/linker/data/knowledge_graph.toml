@@ -1,0 +1,26 @@
+# Topic routing for Cairn link-suggest brain.
+
+[[nodes]]
+topic = "link_suggest"
+concept = "GeneralKnowledge"
+category = "cairn"
+priority = 30
+[[nodes.rules]]
+any = [
+  "suggest links",
+  "related notes",
+  "link to",
+  "find links",
+  "similar notes",
+  "connect to",
+]
+
+[[nodes]]
+topic = "link_suggest"
+concept = "GeneralKnowledge"
+category = "cairn"
+priority = 5
+[[nodes.rules]]
+
+[action_target_concepts]
+link_suggest = "GeneralKnowledge"

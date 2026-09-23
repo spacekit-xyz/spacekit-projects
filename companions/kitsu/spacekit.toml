@@ -1,0 +1,11 @@
+name = "kitsu"
+version = "0.1.0"
+did = "did:spacekit:user:astor"
+
+[networks]
+testnet = "wss://testnet-rpc.spacekit.xyz"
+mainnet = "wss://mainnet-rpc.spacekit.xyz"
+localhost = "ws://localhost:9944"
+
+[dependencies]
+spacekit-primitives = "latest"

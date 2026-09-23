@@ -1,0 +1,45 @@
+# Shiba Inu pet companion brain — Kitsu from Tokyo, Japan.
+#
+# Example infer:
+#   cd spacekit-projects/companions/kitsu
+#   spacekit agent infer --project kitsu.gf.toml --prompt "Hey Kitsu"
+
+schema_version = 1
+
+[project]
+name = "Kitsu 3D"
+author = "Astor Rivera"
+description = "Kitsu the Shiba Inu companion brain — Tokyo pet-domain chat with shiba sass."
+
+[train]
+auto = true
+# Training merges all `data/*.jsonl` under data_dir (filename-sorted).
+# Canonical seed: `data/kitsu_seed_v2.jsonl` (250 rows).
+# Voice bible: `data/kitsu_voice_dataset_v1.jsonl` (200 rows).
+# Backstory lore: `data/kitsu_backstory_lore_v1.jsonl`.
+# Japanese feeding + Japan lore stories: `data/kitsu_feeding_japan_v1.jsonl` (training) +
+# `data/kitsu_feeding_japan_fragments_v1.jsonl` (merged into `kitsu_fragments_v2.jsonl`).
+# Compliment / appearance praise: `data/kitsu_compliment_v1.jsonl` (training) +
+# `data/kitsu_compliment_fragments_v1.jsonl` (merged into `kitsu_fragments_v2.jsonl`).
+# Playful vs lore grounding: `data/kitsu_playful_grounding_v1.jsonl` (training) +
+# `data/kitsu_playful_grounding_fragments_v1.jsonl` (merged into `kitsu_fragments_v2.jsonl`).
+# Authentic Shinto myth + folktales: `data/kitsu_japanese_lore_stories_v1.jsonl` (training) +
+# `scripts/kitsu_japanese_lore_stories.py` + `generate_kitsu_japanese_lore_stories_v1.py`.
+# Long freeform sessions: `data/kitsu_freeform_v1.jsonl` + `generate_kitsu_freeform_v1.py`.
+# Character bible: `KITSU.md`.
+# Lexicon: `data/pet_world_grounding.toml` + `data/knowledge_graph_pet_overlay.toml`.
+data_dir = "data"
+brain_output = "agent/kitsu-3d.bin"
+brain_plugins_toml = "data/plugins/example-brain-plugins.toml"
+encoder = "clifford_e8"
+brain_gen_epochs = 3000
+
+[inference]
+toml = "data/inference_pets.toml"
+topic_graph = "data/knowledge_graph_pet_overlay.toml"
+grounding_toml = "data/pet_world_grounding.toml"
+fragments_jsonl = "data/kitsu_fragments_v2.jsonl"
+guardrails_jsonl = "data/inference_guardrails.jsonl"
+
+[infer]
+brain = "agent/kitsu-3d.bin"

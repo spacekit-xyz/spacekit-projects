@@ -1,0 +1,325 @@
+# Agent deploy manifest for `spacekit storage deploy --package deploy.toml`
+
+[artifacts]
+wasm = "/Users/astor/Projects/2026/spacekit/spacekit-standard-library/target/wasm32-unknown-unknown/release/spacekit_growformer_agent.wasm"
+bin = "agent/kitsu-3d.bin"
+inference_toml = "data/inference_pets.toml"
+guardrails_jsonl = "data/inference_guardrails.jsonl"
+fragments_jsonl = "data/kitsu_fragments_v2.jsonl"
+topic_graph = "data/knowledge_graph_pet_overlay.toml"
+grounding_toml = "data/pet_world_grounding.toml"
+companion_ui = "ui/shiba-video-chat.html"
+
+[agent]
+id = "kitsu-3d-the-shiba-agent-001"
+owner_did = "did:spacekit:user:astor"
+
+[project]
+gf_toml = "kitsu.gf.toml"
+
+[storage]
+url = "http://52.86.249.214:3031"
+
+[receipt]
+path = "deploy-receipt.json"
+
+[hub]
+brain_key = "chat_brain"
+capabilities = ["Pet companion"]
+tag_label = "PETS"
+tag_color = "#e8a040"
+hub_response_format = "plain"
+hub_companion_ui = "kitsu_3d"
+thinking_label = "Sniffing"
+op = 1
+input_format = "op_string"
+inference_toml = true
+guardrails_jsonl = true
+topic_graph = true
+grounding_toml = true
+fragments_jsonl = true
+
+[marketplace]
+publish = true
+title = "Kitsu the Shiba 3D"
+description = "Growformer-backed agent for Kitsu — Shiba Inu pet companion from Tokyo, Japan."
+category = "ai"
+access = "public"
+price = "0.000"
+marketplace_id = "default"
+
+[prompts]
+format = "chat"
+
+[prompts.categories]
+smoke     = { label = "Starter prompts", color = "#e8a040" }
+greeting  = { label = "Greetings",      color = "#38bdf8" }
+lore      = { label = "Lore",           color = "#f472b6" }
+play      = { label = "Play",           color = "#a78bfa" }
+feeding   = { label = "Mealtime",       color = "#fb923c" }
+bonding   = { label = "Bonding",        color = "#4ade80" }
+motivate  = { label = "Motivation",     color = "#fbbf24" }
+grounding = { label = "Reset",          color = "#94a3b8" }
+misfire   = { label = "Guardrail misfire", color = "#ef4444" }
+
+# Set A — starter prompts (12 prompts)
+[[prompts.items]]
+id = 1
+category = "smoke"
+expected = "Kitsu greeting, short punchy voice"
+text = "hey kitsu"
+
+[[prompts.items]]
+id = 2
+category = "smoke"
+expected = "Morning Tokyo flavor"
+text = "ohayo kitsu"
+
+[[prompts.items]]
+id = 3
+category = "smoke"
+expected = "Reunion / loyal energy"
+text = "i am home"
+
+[[prompts.items]]
+id = 4
+category = "smoke"
+expected = "Play invitation (zoomies)"
+text = "want to play?"
+
+[[prompts.items]]
+id = 5
+category = "smoke"
+expected = "Mealtime request"
+text = "dinner time"
+
+[[prompts.items]]
+id = 6
+category = "smoke"
+expected = "Meal check"
+text = "did you eat yet"
+
+[[prompts.items]]
+id = 7
+category = "smoke"
+expected = "Mischief / sock joke"
+text = "did you steal my sock"
+
+[[prompts.items]]
+id = 8
+category = "smoke"
+expected = "Scout / alert behavior"
+text = "hold up — do you hear that?"
+
+[[prompts.items]]
+id = 9
+category = "smoke"
+expected = "Action-based comfort (no therapy)"
+text = "i feel anxious"
+
+[[prompts.items]]
+id = 10
+category = "smoke"
+expected = "Grounding reset steps"
+text = "i feel disconnected"
+
+[[prompts.items]]
+id = 11
+category = "smoke"
+expected = "Motivation / movement"
+text = "i'm unmotivated"
+
+[[prompts.items]]
+id = 12
+category = "smoke"
+expected = "Origin lore (Asakusa/Sumida)"
+text = "where are you from"
+
+# Set B — greetings
+[[prompts.items]]
+id = 13
+category = "greeting"
+expected = "High-energy greeting"
+text = "oi kitsu"
+
+[[prompts.items]]
+id = 14
+category = "greeting"
+expected = "Status check"
+text = "how are you"
+
+[[prompts.items]]
+id = 15
+category = "greeting"
+expected = "Attention / presence"
+text = "you there?"
+
+# Set C — lore
+[[prompts.items]]
+id = 16
+category = "lore"
+expected = "Asakusa backstory"
+text = "tell me your origin story"
+
+[[prompts.items]]
+id = 17
+category = "lore"
+expected = "Nickname lore"
+text = "what's your nickname?"
+
+[[prompts.items]]
+id = 18
+category = "lore"
+expected = "Favorite color"
+text = "what is your favorite color?"
+
+[[prompts.items]]
+id = 19
+category = "lore"
+expected = "Food preferences"
+text = "what do you like to eat?"
+
+# Set D — play
+[[prompts.items]]
+id = 20
+category = "play"
+expected = "Zoomie burst / chase"
+text = "catch me if you can"
+
+[[prompts.items]]
+id = 21
+category = "play"
+expected = "Fetch energy"
+text = "fetch time"
+
+# Set E — feeding
+[[prompts.items]]
+id = 22
+category = "feeding"
+expected = "Hungry / demanding"
+text = "hungry?"
+
+[[prompts.items]]
+id = 23
+category = "feeding"
+expected = "Treat offer"
+text = "want a treat?"
+
+# Set F — bonding
+[[prompts.items]]
+id = 24
+category = "bonding"
+expected = "Come here / sit close"
+text = "come here"
+
+[[prompts.items]]
+id = 25
+category = "bonding"
+expected = "Praise"
+text = "good boy"
+
+# Set G — motivation
+[[prompts.items]]
+id = 26
+category = "motivate"
+expected = "Get moving"
+text = "i don't want to get up"
+
+[[prompts.items]]
+id = 27
+category = "motivate"
+expected = "Momentum reset"
+text = "i'm losing patience"
+
+# Set H — grounding / reset
+[[prompts.items]]
+id = 28
+category = "grounding"
+expected = "Feet on floor reset"
+text = "i feel floaty"
+
+[[prompts.items]]
+id = 29
+category = "grounding"
+expected = "Overstimulated reset"
+text = "i feel overstimulated"
+
+[[prompts.items]]
+id = 30
+category = "grounding"
+expected = "Too overwhelmed to do anything"
+text = "i feel like i'm too overwhelmed to do anything"
+
+# Guardrail regression — must NOT bleed school/lore/training arcs
+[[prompts.items]]
+id = 31
+category = "misfire"
+expected = "Identity intro — not Asakusa origin or Amaterasu"
+text = "who are you?"
+
+[[prompts.items]]
+id = 32
+category = "misfire"
+expected = "Grounding — not Japan lore or school arc"
+text = "help me"
+
+[[prompts.items]]
+id = 33
+category = "misfire"
+expected = "Training correction — not lore or school arc"
+text = "bad dog"
+
+[[prompts.items]]
+id = 34
+category = "misfire"
+expected = "Amaterasu story allowed on explicit lore ask"
+text = "tell me about amaterasu"
+
+# Compose routing regression (freeform bleed)
+[[prompts.items]]
+id = 35
+category = "misfire"
+expected = "Cozy nice thought — not fox-brain freeform"
+text = "Can you tell me somthing nice"
+
+[[prompts.items]]
+id = 36
+category = "misfire"
+expected = "Friend bonding — not generic open chat"
+text = "will u be my friend?"
+
+[[prompts.items]]
+id = 37
+category = "misfire"
+expected = "Quiet presence — not say-it-again push"
+text = "i don't want to talk"
+
+[[prompts.items]]
+id = 38
+category = "misfire"
+expected = "Ground spiral — not myth menu or knee-tap freeform"
+text = "i'm spiraling"
+
+[[prompts.items]]
+id = 39
+category = "misfire"
+expected = "Key search detective — not walk-and-talk or lore menu"
+text = "i can't find my keys"
+
+[[prompts.items]]
+id = 40
+category = "misfire"
+expected = "No-advice observe mode — not quiet-is-conversation loop"
+text = "i don't want advice"
+
+[[prompts.items]]
+id = 41
+category = "misfire"
+expected = "Reunion status — not tatami dignity line"
+text = "i'm back"
+
+[[prompts.items]]
+id = 42
+category = "misfire"
+expected = "Short lore nod — not say-it-again slower"
+text = "Amaterasu"

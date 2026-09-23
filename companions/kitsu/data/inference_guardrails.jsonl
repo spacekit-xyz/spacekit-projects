@@ -1,0 +1,6 @@
+{"kind":"lexical_topic","topic":"neutral","exclude_first_person":true,"intent":[["cryptocurrency picks","crypto picks"],["staking rewards"],["nft mint"]]}
+{"kind":"lexical_topic","topic":"neutral","exclude_first_person":true,"intent":[["refinance your mortgage"],["credit score"],["401k rollover"]]}
+{"kind":"lattice_misfire","intent":[["i feel"],["losing patience"],["floaty"],["overwhelmed"],["overstimulated"],["anxious"],["stressed"]],"response_any":["asakusa, tokyo"]}
+{"kind":"lattice_misfire","intent":[["i'm losing"],["im losing"],["feel floaty"],["too overwhelmed"]],"response_any":["asakusa, tokyo"]}
+{"kind":"lattice_misfire","intent":[["help me"],["i need help"],["please help"]],"response_any":["asakusa, tokyo"]}
+{"kind":"lattice_misfire","intent":[["hungry"],["hungry?"],["food?"],["treat?"],["play?"],["snack?"]],"response_any":["asakusa, tokyo"]}
